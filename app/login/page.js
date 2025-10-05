@@ -1,10 +1,8 @@
+// app/page.jsx
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 
 export default function HomePage() {
-  // Safety net: kalau sampai sini tanpa cookie, tendang ke /login
-  const session = cookies().get("session")?.value;
-  if (session !== "logged-in") redirect("/login");
+  const loggedIn = cookies().get("session")?.value === "logged-in";
 
   return (
     <>
@@ -29,32 +27,46 @@ export default function HomePage() {
           <nav className="hidden md:flex items-center gap-4 text-sm font-medium">
             <a className="inline-flex items-center gap-1 hover:text-indigo-600" href="#"><span>🏠</span>Beranda</a>
             <a className="inline-flex items-center gap-1 hover:text-indigo-600" href="#"><span>🤍</span>Wishlist</a>
-            <a className="inline-flex items-center gap-1 hover:text-indigo-600" href="#"><span>🛠️</span>Kelola Produk</a>
+
+            {/* TAMPILKAN HANYA JIKA LOGIN */}
+            {loggedIn && (
+              <a className="inline-flex items-center gap-1 hover:text-indigo-600" href="/kelola-produk">
+                <span>🛠️</span>Kelola Produk
+              </a>
+            )}
           </nav>
 
-          {/* Admin dropdown */}
-          <details className="relative">
-            <summary className="list-none cursor-pointer inline-flex items-center gap-2 rounded-lg border
-                                 border-slate-200 px-3 py-1.5 text-sm font-semibold">
-              <span>👤 Admin</span><span className="text-slate-500">▾</span>
-            </summary>
-            <div className="absolute right-0 mt-2 w-48 rounded-xl border border-slate-200 bg-white shadow-lg p-1">
-              <a className="block px-3 py-2 rounded-lg text-sm hover:bg-slate-50" href="#">Profil</a>
-              <form action="/api/logout" method="POST">
-                <button className="w-full text-left px-3 py-2 rounded-lg text-sm
-                                   hover:bg-red-50 hover:text-red-600">
-                  Keluar
-                </button>
-              </form>
-            </div>
-          </details>
+          {/* KANAN: Admin dropdown kalau login, tombol Login kalau tidak */}
+          {loggedIn ? (
+            <details className="relative">
+              <summary className="list-none cursor-pointer inline-flex items-center gap-2 rounded-lg border
+                                   border-slate-200 px-3 py-1.5 text-sm font-semibold">
+                <span>👤 Admin</span><span className="text-slate-500">▾</span>
+              </summary>
+              <div className="absolute right-0 mt-2 w-48 rounded-xl border border-slate-200 bg-white shadow-lg p-1">
+                <a className="block px-3 py-2 rounded-lg text-sm hover:bg-slate-50" href="#">Profil</a>
+                <form action="/api/logout" method="POST">
+                  <button className="w-full text-left px-3 py-2 rounded-lg text-sm
+                                     hover:bg-red-50 hover:text-red-600">
+                    Keluar
+                  </button>
+                </form>
+              </div>
+            </details>
+          ) : (
+            <a
+              href="/login"
+              className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-semibold hover:bg-slate-50"
+            >
+              Masuk
+            </a>
+          )}
         </div>
       </header>
 
       {/* MAIN */}
       <main className="mx-auto max-w-6xl px-4 py-6 space-y-8">
-
-        {/* HERO gradient */}
+        {/* HERO */}
         <section className="rounded-3xl bg-gradient-to-r from-indigo-500 to-sky-400 text-white p-6 md:p-8 shadow-sm relative overflow-hidden">
           <div className="md:flex md:items-center">
             <div className="flex-1">
@@ -82,9 +94,7 @@ export default function HomePage() {
         {/* Rekomendasi */}
         <section id="rekomendasi" className="space-y-4">
           <h3 className="text-lg font-semibold">Rekomendasi</h3>
-
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-            {/* Card produk contoh */}
             <article className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
               <div className="aspect-[4/3] w-full overflow-hidden">
                 <img
@@ -109,7 +119,6 @@ export default function HomePage() {
             </article>
           </div>
         </section>
-
       </main>
     </>
   );
