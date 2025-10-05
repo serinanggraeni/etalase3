@@ -22,12 +22,12 @@ export async function POST(req) {
     res.cookies.set({
       name: "session",
       value: "logged-in",          // untuk demo, cukup flag
-      httpOnly: true,              // tidak bisa diakses JS
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
       path: "/",
       maxAge: 60 * 60 * 24 * 7,    // 7 hari
     });
+    
     return res;
   } catch (e) {
     return NextResponse.json(
