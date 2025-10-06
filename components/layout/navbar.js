@@ -1,9 +1,16 @@
-// Navbar.jsx
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Home, Heart, Package, User, LogOut, ChevronDown, Search } from "lucide-react";
+import {
+  Home,
+  Heart,
+  Package,
+  User,
+  LogOut,
+  ChevronDown,
+  Search,
+} from "lucide-react";
 import Cookies from "js-cookie";
 
 export default function Navbar() {
@@ -12,6 +19,7 @@ export default function Navbar() {
   const showNavbar = showNavbarOn.includes(pathname);
 
   const [user, setUser] = useState(null);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     const checkUser = () => {
@@ -20,56 +28,90 @@ export default function Navbar() {
       else setUser(null);
     };
 
-    checkUser(); // cek saat mount
-
-    // listen event login
+    checkUser();
     window.addEventListener("user-login", checkUser);
 
     return () => window.removeEventListener("user-login", checkUser);
   }, []);
 
+  // 🔹 Efek scroll shrink
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 30) setScrolled(true);
+      else setScrolled(false);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   if (!showNavbar) return null;
 
   return (
-    <header className="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-slate-200">
-      <div className="mx-auto max-w-6xl px-4 py-3 flex items-center gap-4">
-        <Link href="/" className="text-xl font-extrabold tracking-tight">Etalase</Link>
-        <div className="flex-1">
-          <label className="relative block">
-            <input
-              type="text"
-              className="w-100 rounded-full border border-slate-200 pl-11 pr-4 py-2 outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="Cari produk atau toko..."
-            />
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><Search /></span>
-          </label>
+    <header
+      className={`sticky top-5 z-40 mx-auto transition-all duration-500 ease-in-out py-2 px-2 ${
+        scrolled
+          ? "max-w-5xl bg-background/80 backdrop-blur-md rounded-4xl shadow-md"
+          : "max-w-6xl bg-none border-none rounded-none mt-0 shadow-none"
+      }`}
+    >
+      <div
+        className={`px-4 py-3 flex items-center gap-4 transition-all duration-500 justify-between ${
+          scrolled ? "py-2" : "py-3"
+        }`}
+      >
+        <div>
+        <Link
+          href="/"
+          className={`font-extrabold tracking-tight transition-all duration-300 ${
+            scrolled ? "text-primary/90 text-lg" : "text-black text-xl"
+          }`}
+        >
+          Etalase
+        </Link>
         </div>
-
+        <div className="flex items-center gap-4">
         <nav className="hidden md:flex items-center gap-4 text-sm font-medium">
-          <Link href="#" className="inline-flex items-center gap-1 hover:text-indigo-600"><Home size={18} /> Beranda</Link>
-          <Link href="#" className="inline-flex items-center gap-1 hover:text-indigo-600"><Heart size={18} /> Wishlist</Link>
-          <Link href="#" className="inline-flex items-center gap-1 hover:text-indigo-600"><Package size={18} /> Kelola Produk</Link>
+          <Link
+            href="#"
+            className="inline-flex items-center gap-1 hover:text-primary/90"
+          >
+            <Home size={18} /> Beranda
+          </Link>
+          <Link
+            href="#"
+            className="inline-flex items-center gap-1 hover:text-primary/90"
+          >
+            <Heart size={18} /> Wishlist
+          </Link>
+          <Link
+            href="#"
+            className="inline-flex items-center gap-1 hover:text-primary/90"
+          >
+            <Package size={18} /> Kelola Produk
+          </Link>
         </nav>
 
         {user && (
           <details className="relative">
-            <summary className="list-none cursor-pointer inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-semibold">
-              <User size={18} /> {user.name} <ChevronDown size={14} className="text-slate-500" />
+            <summary className="list-none cursor-pointer inline-flex items-center gap-2 rounded-2xl border border-slate-400 px-3 py-1.5 text-sm font-semibold">
+              <User size={18} /> {user.name}{" "}
+              <ChevronDown size={14} className="text-slate-500" />
             </summary>
-            <div className="absolute right-0 mt-2 w-32 rounded-xl border border-slate-200 bg-white shadow-lg p-1">
+            <div className="absolute right-0 mt-2 w-32 rounded-xl border border-slate-200 bg-background shadow-lg">
               <button
                 onClick={() => {
                   Cookies.remove("session");
                   setUser(null);
                   window.location.href = "/";
                 }}
-                className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-red-50 hover:text-red-600 flex items-center gap-1"
+                className="w-full text-left px-3 py-2 rounded-xl text-sm hover:bg-red-50 hover:text-red-600 flex items-center gap-1"
               >
                 <LogOut size={16} /> Keluar
               </button>
             </div>
           </details>
         )}
+      </div>
       </div>
     </header>
   );
