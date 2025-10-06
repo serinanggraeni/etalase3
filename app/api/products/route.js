@@ -1,47 +1,74 @@
-import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma"; // ✅ gunakan prisma dari lib
+export const runtime = "nodejs";
+export const revalidate = 0;
 
-// 🟢 GET semua produk
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+
+const toUrl = (u = "") =>
+  u && /^https?:\/\//i.test(u) ? u : u ? `https://${u}` : "";
+
+// GET: list products
 export async function GET() {
   try {
-    const products = await prisma.product.findMany({
+    const rows = await prisma.product.findMany({
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json(products);
-  } catch (error) {
-    console.error("GET /products error:", error);
-    return NextResponse.json({ error: "Gagal mengambil produk." }, { status: 500 });
+    // flatten + aman numerik
+    const products = rows.map((r) => ({
+      id: r.id,
+      image: r.image ?? "",
+      tiktok: r.tiktok ?? "",
+      shopee: toUrl(r.shopee ?? ""),
+      category: r?.category?.name ?? r?.category ?? "",
+      price: Number(r.price ?? 0),
+    }));
+
+    return NextResponse.json(products, { status: 200 });
+  } catch (e) {
+    console.error("[GET /api/products]", e);
+    return NextResponse.json(
+      { error: "INTERNAL_ERROR", message: String(e?.message || e) },
+      { status: 500 }
+    );
   }
 }
 
-// 🟢 POST buat produk baru
+// POST: create product
 export async function POST(req) {
   try {
-    const body = await req.json();
-    const { tiktok, shopee, category, price, image } = body;
+    const { tiktok, shopee, category, price, image } = await req.json();
 
-    // Validasi sederhana
-    if (!tiktok || !shopee || !category || !price || !image) {
+    if (![tiktok, shopee, category, price, image].every(Boolean)) {
       return NextResponse.json(
-        { error: "Semua field wajib diisi." },
+        { error: "VALIDATION", message: "Semua field wajib diisi." },
         { status: 400 }
       );
     }
 
-    const newProduct = await prisma.product.create({
+    const created = await prisma.product.create({
       data: {
         tiktok,
-        shopee,
+        shopee: toUrl(shopee),
         category,
         price: parseFloat(price),
         image,
       },
     });
 
-    return NextResponse.json(newProduct, { status: 201 });
-  } catch (error) {
-    console.error("POST /products error:", error);
-    return NextResponse.json({ error: "Gagal membuat produk." }, { status: 500 });
+    return NextResponse.json(
+      {
+        ...created,
+        shopee: toUrl(created.shopee ?? ""),
+        price: Number(created.price ?? 0),
+      },
+      { status: 201 }
+    );
+  } catch (e) {
+    console.error("[POST /api/products]", e);
+    return NextResponse.json(
+      { error: "INTERNAL_ERROR", message: String(e?.message || e) },
+      { status: 500 }
+    );
   }
 }

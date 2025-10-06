@@ -11,30 +11,43 @@ export default function ProductList() {
   const [categories, setCategories] = useState(["Semua"]);
   const [loading, setLoading] = useState(true);
   const itemsPerPage = 8;
+  const toUrl = (u = "") => (u && /^https?:\/\//i.test(u) ? u : u ? `https://${u}` : "#");
 
   // 🧩 Ambil data dari API
-  useEffect(() => {
+    useEffect(() => {
     async function fetchProducts() {
       try {
         setLoading(true);
-        const res = await fetch("/api/products");
-        const data = await res.json();
-        setProducts(data);
+        const res = await fetch("/api/products", { cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-        // Ambil kategori unik dari produk
-        const uniqueCategories = [
-          "Semua",
-          ...Array.from(new Set(data.map((p) => p.category))).filter(Boolean),
-        ];
+        const json = await res.json();
+
+        // pastikan selalu array
+        const items = Array.isArray(json)
+          ? json
+          : (json?.products ?? json?.data ?? []);
+
+        setProducts(items);
+
+        // category bisa string / object {name: "..."}
+        const catList = items
+          .map(p => (p?.category?.name ?? p?.category ?? ""))
+          .filter(Boolean);
+
+        const uniqueCategories = ["Semua", ...new Set(catList)];
         setCategories(uniqueCategories);
       } catch (err) {
         console.error("Gagal memuat produk:", err);
+        setProducts([]);
+        setCategories(["Semua"]);
       } finally {
         setLoading(false);
       }
     }
     fetchProducts();
   }, []);
+
 
   // 🔍 Filter produk
   const filteredProducts = products.filter((p) => {
@@ -136,7 +149,7 @@ export default function ProductList() {
                   Rp {Number(product.price).toLocaleString("id-ID")}
                 </span>
                 <a
-                  href={product.shopee}
+                  href={toUrl(product.shopee)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center rounded-lg bg-primary px-3 py-1.5 text-background text-sm font-medium hover:bg-primary/80 transition-colors"

@@ -84,7 +84,7 @@ export default function Navbar() {
             <Heart size={18} /> Wishlist
           </Link>
           <Link
-            href="#"
+            href="/admin/kelola-products"
             className="inline-flex items-center gap-1 hover:text-primary/90"
           >
             <Package size={18} /> Kelola Produk
