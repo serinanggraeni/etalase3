@@ -17,7 +17,7 @@ datasource db {
 model Product {
   id       Int     @id @default(autoincrement())
   name     String
-  whatsapp String
+  whatsApp String
   tiktok   String
   shopee   String
   category String
