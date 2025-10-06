@@ -19,6 +19,7 @@ export async function GET(request, { params }) {
 
     return NextResponse.json(product);
   } catch (error) {
+    console.error("GET /products/:id error:", error);
     return NextResponse.json(
       { error: error.message || "Terjadi kesalahan server" },
       { status: 500 }
@@ -26,16 +27,26 @@ export async function GET(request, { params }) {
   }
 }
 
-// ✅ UPDATE product
+// ✅ UPDATE product by ID
 export async function PUT(request, { params }) {
   try {
     const { id } = params;
     const body = await request.json();
-    const { tiktok, shopee, category, price, image } = body;
+    const { name, whatsApp, tiktok, shopee, category, price, image } = body;
+
+    // Validasi sederhana
+    if (!name || !whatsApp || !tiktok || !shopee || !category || !price || !image) {
+      return NextResponse.json(
+        { error: "Semua field wajib diisi." },
+        { status: 400 }
+      );
+    }
 
     const updatedProduct = await prisma.product.update({
       where: { id: Number(id) },
       data: {
+        name,
+        whatsApp,
         tiktok,
         shopee,
         category,
@@ -46,6 +57,7 @@ export async function PUT(request, { params }) {
 
     return NextResponse.json(updatedProduct);
   } catch (error) {
+    console.error("PUT /products/:id error:", error);
     return NextResponse.json(
       { error: error.message || "Gagal memperbarui produk" },
       { status: 500 }
@@ -53,7 +65,7 @@ export async function PUT(request, { params }) {
   }
 }
 
-// ✅ DELETE product
+// ✅ DELETE product by ID
 export async function DELETE(request, { params }) {
   try {
     const { id } = params;
@@ -64,6 +76,7 @@ export async function DELETE(request, { params }) {
 
     return NextResponse.json({ message: "Produk berhasil dihapus" });
   } catch (error) {
+    console.error("DELETE /products/:id error:", error);
     return NextResponse.json(
       { error: error.message || "Gagal menghapus produk" },
       { status: 500 }

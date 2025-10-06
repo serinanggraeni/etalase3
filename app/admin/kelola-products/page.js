@@ -11,6 +11,8 @@ export default function ProductsPage() {
 
   // form data
   const [form, setForm] = useState({
+    name: "",
+    whatsApp: "",
     tiktok: "",
     shopee: "",
     category: "",
@@ -39,9 +41,11 @@ export default function ProductsPage() {
     setFiltered(
       products.filter(
         (p) =>
-          p.tiktok.toLowerCase().includes(lower) ||
-          p.shopee.toLowerCase().includes(lower) ||
-          p.category.toLowerCase().includes(lower)
+          p.name.toLowerCase().includes(lower) ||
+          (p.whatsApp && p.whatsApp.toLowerCase().includes(lower)) ||
+          (p.tiktok && p.tiktok.toLowerCase().includes(lower)) ||
+          (p.shopee && p.shopee.toLowerCase().includes(lower)) ||
+          (p.category && p.category.toLowerCase().includes(lower))
       )
     );
   }, [search, products]);
@@ -50,9 +54,20 @@ export default function ProductsPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     try {
-      await axios.post("/api/products", form);
+      await axios.post("/api/products", {
+        ...form,
+        price: parseFloat(form.price),
+      });
       setShowModal(false);
-      setForm({ tiktok: "", shopee: "", category: "", price: "", image: "" });
+      setForm({
+        name: "",
+        whatsApp: "",
+        tiktok: "",
+        shopee: "",
+        category: "",
+        price: "",
+        image: "",
+      });
       fetchProducts();
     } catch (err) {
       console.error("Gagal menambahkan produk:", err);
@@ -90,6 +105,8 @@ export default function ProductsPage() {
           <thead className="bg-gray-100">
             <tr>
               <th className="p-3 text-left">Gambar</th>
+              <th className="p-3 text-left">Nama</th>
+              <th className="p-3 text-left">WhatsApp</th>
               <th className="p-3 text-left">Tiktok</th>
               <th className="p-3 text-left">Shopee</th>
               <th className="p-3 text-left">Kategori</th>
@@ -108,10 +125,14 @@ export default function ProductsPage() {
                       className="w-16 h-16 object-cover rounded-md"
                     />
                   </td>
+                  <td className="p-3">{product.name}</td>
+                  <td className="p-3">{product.whatsApp}</td>
                   <td className="p-3">{product.tiktok}</td>
                   <td className="p-3">{product.shopee}</td>
                   <td className="p-3">{product.category}</td>
-                  <td className="p-3">Rp {Number(product.price).toLocaleString()}</td>
+                  <td className="p-3">
+                    Rp {Number(product.price).toLocaleString()}
+                  </td>
                   <td className="p-3">
                     {new Date(product.createdAt).toLocaleDateString("id-ID")}
                   </td>
@@ -119,7 +140,7 @@ export default function ProductsPage() {
               ))
             ) : (
               <tr>
-                <td colSpan="6" className="text-center p-4 text-gray-500">
+                <td colSpan="8" className="text-center p-4 text-gray-500">
                   Tidak ada produk ditemukan
                 </td>
               </tr>
@@ -135,18 +156,20 @@ export default function ProductsPage() {
             <h2 className="text-lg font-semibold mb-4">Tambah Produk Baru</h2>
 
             <form onSubmit={handleSubmit} className="space-y-3">
-              {["tiktok", "shopee", "category", "price", "image"].map((field) => (
-                <input
-                  key={field}
-                  type={field === "price" ? "number" : "text"}
-                  placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
-                  value={form[field]}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, [field]: e.target.value }))
-                  }
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              ))}
+              {["name", "whatsApp", "tiktok", "shopee", "category", "price", "image"].map(
+                (field) => (
+                  <input
+                    key={field}
+                    type={field === "price" ? "number" : "text"}
+                    placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+                    value={form[field]}
+                    onChange={(e) =>
+                      setForm((prev) => ({ ...prev, [field]: e.target.value }))
+                    }
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                )
+              )}
 
               <div className="flex justify-end gap-2 mt-4">
                 <button

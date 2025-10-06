@@ -19,10 +19,10 @@ export async function GET() {
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { tiktok, shopee, category, price, image } = body;
+    const { name, whatsApp, tiktok, shopee, category, price, image } = body;
 
     // Validasi sederhana
-    if (!tiktok || !shopee || !category || !price || !image) {
+    if (!name || !whatsApp || !tiktok || !shopee || !category || !price || !image) {
       return NextResponse.json(
         { error: "Semua field wajib diisi." },
         { status: 400 }
@@ -31,6 +31,8 @@ export async function POST(req) {
 
     const newProduct = await prisma.product.create({
       data: {
+        name,
+        whatsApp,
         tiktok,
         shopee,
         category,
