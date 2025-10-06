@@ -10,15 +10,20 @@ export default function ProductList() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState(["Semua"]);
   const [loading, setLoading] = useState(true);
-  const [modalProduct, setModalProduct] = useState(null); // ✨ Produk untuk modal
+  const [modalProduct, setModalProduct] = useState(null);
   const itemsPerPage = 8;
 
+  const toUrl = (u = "") => (u && /^https?:\/\//i.test(u) ? u : u ? `https://${u}` : "#");
+
+  // Ambil data produk
   useEffect(() => {
     async function fetchProducts() {
       try {
         setLoading(true);
-        const res = await fetch("/api/products");
+        const res = await fetch("/api/products", { cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
+
         setProducts(data);
 
         const uniqueCategories = [
@@ -28,6 +33,8 @@ export default function ProductList() {
         setCategories(uniqueCategories);
       } catch (err) {
         console.error("Gagal memuat produk:", err);
+        setProducts([]);
+        setCategories(["Semua"]);
       } finally {
         setLoading(false);
       }
@@ -35,10 +42,11 @@ export default function ProductList() {
     fetchProducts();
   }, []);
 
+  // Filter produk
   const filteredProducts = products.filter((p) => {
-    const matchCategory =
-      activeCategory === "Semua" || p.category === activeCategory;
+    const matchCategory = activeCategory === "Semua" || p.category === activeCategory;
     const matchSearch =
+      p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.tiktok?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.shopee?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.category?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -47,10 +55,7 @@ export default function ProductList() {
 
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentProducts = filteredProducts.slice(
-    startIndex,
-    startIndex + itemsPerPage
-  );
+  const currentProducts = filteredProducts.slice(startIndex, startIndex + itemsPerPage);
 
   const goToPage = (page) => {
     if (page >= 1 && page <= totalPages) setCurrentPage(page);
@@ -100,7 +105,7 @@ export default function ProductList() {
       </div>
 
       {/* DAFTAR PRODUK */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {loading
           ? Array.from({ length: itemsPerPage }).map((_, i) => (
               <div
@@ -122,7 +127,7 @@ export default function ProductList() {
               <article
                 key={product.id}
                 className="rounded-2xl border border-slate-200 bg-background shadow-sm overflow-hidden hover:shadow-md transition-all duration-200 hover:-translate-y-1 cursor-pointer"
-                onClick={() => setModalProduct(product)} // ✨ buka modal
+                onClick={() => setModalProduct(product)}
               >
                 <div className="aspect-[4/3] w-full overflow-hidden">
                   <Image
@@ -141,7 +146,7 @@ export default function ProductList() {
                       Rp {Number(product.price).toLocaleString("id-ID")}
                     </span>
                     <a
-                      href={product.shopee}
+                      href={toUrl(product.shopee)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center rounded-lg bg-primary px-2.5 py-1 text-background text-xs font-medium hover:bg-primary/80 transition-colors"
@@ -195,7 +200,7 @@ export default function ProductList() {
         </div>
       )}
 
-      {/* ✨ MODAL */}
+      {/* MODAL PRODUK */}
       {modalProduct && (
         <div
           className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center"
@@ -205,7 +210,6 @@ export default function ProductList() {
             className="bg-white p-6 rounded-2xl w-80 relative"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Tombol Close */}
             <button
               onClick={() => setModalProduct(null)}
               className="absolute top-3 right-3 p-1 rounded-md hover:bg-slate-100"
@@ -213,97 +217,46 @@ export default function ProductList() {
               <X size={20} />
             </button>
 
-            {/* Judul */}
             <p className="flex items-center justify-center mt-4 mb-4 gap-1 text-sm text-slate-700">
               Lanjutkan pembelian{" "}
-              <span className="font-semibold text-slate-900">
-                {modalProduct.name}
-              </span>
+              <span className="font-semibold text-slate-900">{modalProduct.name}</span>
             </p>
 
-            {/* ✨ MODAL */}
-            {modalProduct && (
-              <div
-                className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center"
-                onClick={() => setModalProduct(null)}
-              >
-                <div
-                  className="bg-white p-6 rounded-2xl w-80 relative"
-                  onClick={(e) => e.stopPropagation()}
+            <div className="flex flex-col gap-2">
+              {modalProduct.whatsapp && (
+                <a
+                  href={toUrl(modalProduct.whatsapp)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 border border-slate-300 rounded-lg px-4 py-2 text-sm font-semibold text-black hover:border-[#25D366] transition-colors"
                 >
-                  {/* Tombol Close */}
-                  <button
-                    onClick={() => setModalProduct(null)}
-                    className="absolute top-3 right-3 p-1 rounded-md hover:bg-slate-100"
-                  >
-                    <X size={20} />
-                  </button>
-
-                  {/* Judul */}
-                  <p className="flex items-center justify-center mt-4 mb-4 gap-1 text-sm text-slate-700">
-                    Lanjutkan pembelian{" "}
-                    <span className="font-semibold text-slate-900">
-                      {modalProduct.name}
-                    </span>
-                  </p>
-
-                  {/* Link WhatsApp, TikTok & Shopee */}
-                  <div className="flex flex-col gap-2">
-                    {modalProduct.whatsApp && (
-                      <a
-                        href={modalProduct.whatsApp}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-2 border border-slate-300 rounded-lg px-4 py-2 text-sm font-semibold text-black hover:border-[#25D366] transition-colors"
-                      >
-                        {/* Icon WhatsApp */}
-                        <Image
-                          src="/whatsapp.png"
-                          alt="WhatsApp"
-                          width={20}
-                          height={20}
-                        />
-                        WhatsApp
-                      </a>
-                    )}
-                    {modalProduct.tiktok && (
-                      <a
-                        href={modalProduct.tiktok}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-2 border border-slate-300 rounded-lg px-4 py-2 text-sm font-semibold text-black hover:border-[#69C9D0] transition-colors"
-                      >
-                        {/* Icon TikTok */}
-                        <Image
-                          src="/tiktok.png"
-                          alt="TikTok"
-                          width={20}
-                          height={20}
-                        />
-                        TikTok
-                      </a>
-                    )}
-                    {modalProduct.shopee && (
-                      <a
-                        href={modalProduct.shopee}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-2 border border-slate-300 rounded-lg px-4 py-2 text-sm font-semibold bg-background text-[#EE4D2D] hover:border-[#d84424] transition-colors"
-                      >
-                        {/* Icon Shopee */}
-                        <Image
-                          src="/shopee.png"
-                          alt="Shopee"
-                          width={20}
-                          height={20}
-                        />
-                        Shopee
-                      </a>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
+                  <Image src="/whatsapp.png" alt="WhatsApp" width={20} height={20} />
+                  WhatsApp
+                </a>
+              )}
+              {modalProduct.tiktok && (
+                <a
+                  href={toUrl(modalProduct.tiktok)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 border border-slate-300 rounded-lg px-4 py-2 text-sm font-semibold text-black hover:border-[#69C9D0] transition-colors"
+                >
+                  <Image src="/tiktok.png" alt="TikTok" width={20} height={20} />
+                  TikTok
+                </a>
+              )}
+              {modalProduct.shopee && (
+                <a
+                  href={toUrl(modalProduct.shopee)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 border border-slate-300 rounded-lg px-4 py-2 text-sm font-semibold bg-background text-[#EE4D2D] hover:border-[#d84424] transition-colors"
+                >
+                  <Image src="/shopee.png" alt="Shopee" width={20} height={20} />
+                  Shopee
+                </a>
+              )}
+            </div>
           </div>
         </div>
       )}

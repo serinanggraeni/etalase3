@@ -22,7 +22,7 @@ export default function Navbar() {
   const [user, setUser] = useState(null);
   const [scrolled, setScrolled] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [closing, setClosing] = useState(false); // 🔹 baru
+  const [closing, setClosing] = useState(false);
 
   useEffect(() => {
     const checkUser = () => {
@@ -31,13 +31,11 @@ export default function Navbar() {
         setUser({ name: "Admin", email: "admin@etalase.com" });
       else setUser(null);
     };
-
     checkUser();
     window.addEventListener("user-login", checkUser);
     return () => window.removeEventListener("user-login", checkUser);
   }, []);
 
-  // 🔹 Efek scroll shrink
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 30);
     window.addEventListener("scroll", handleScroll);
@@ -46,14 +44,14 @@ export default function Navbar() {
 
   if (!showNavbar) return null;
 
-  // 🔹 Fungsi untuk menutup sidebar dengan animasi
   const handleCloseSidebar = () => {
     setClosing(true);
     setTimeout(() => {
       setSidebarOpen(false);
       setClosing(false);
-    }, 300); // sesuai durasi animasi
+    }, 300);
   };
+
   const renderUserCircle = (name, size) => {
     const initial = name ? name[0].toUpperCase() : "?";
     return (
@@ -64,9 +62,10 @@ export default function Navbar() {
       </div>
     );
   };
+
   return (
     <>
-      {/* 🔹 Navbar Utama */}
+      {/* Navbar Desktop */}
       <header
         className={`sticky top-5 z-40 mx-auto transition-all duration-500 ease-in-out py-2 px-2 ${
           scrolled
@@ -79,7 +78,7 @@ export default function Navbar() {
             scrolled ? "py-2" : "py-3"
           }`}
         >
-          {/* 🔹 Logo */}
+          {/* Logo */}
           <Link
             href="/"
             className={`font-extrabold tracking-tight transition-all duration-300 ${
@@ -89,25 +88,16 @@ export default function Navbar() {
             Etalase
           </Link>
 
-          {/* 🔹 Menu Desktop */}
+          {/* Menu Desktop */}
           <div className="hidden md:flex items-center gap-4">
             <nav className="flex items-center gap-4 text-sm font-medium">
-              <Link
-                href="#"
-                className="inline-flex items-center gap-1 hover:text-primary/90"
-              >
+              <Link href="#" className="inline-flex items-center gap-1 hover:text-primary/90">
                 <Home size={18} /> Beranda
               </Link>
-              <Link
-                href="#"
-                className="inline-flex items-center gap-1 hover:text-primary/90"
-              >
+              <Link href="#" className="inline-flex items-center gap-1 hover:text-primary/90">
                 <Heart size={18} /> Wishlist
               </Link>
-              <Link
-                href="#"
-                className="inline-flex items-center gap-1 hover:text-primary/90"
-              >
+              <Link href="#" className="inline-flex items-center gap-1 hover:text-primary/90">
                 <Package size={18} /> Kelola Produk
               </Link>
             </nav>
@@ -135,7 +125,7 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* 🔹 Tombol Menu HP */}
+          {/* Tombol Menu HP */}
           <button
             onClick={() => setSidebarOpen(true)}
             className="md:hidden p-2 rounded-xl border border-slate-300 hover:bg-slate-100"
@@ -145,7 +135,7 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* 🔹 Overlay & Sidebar Mobile */}
+      {/* Sidebar Mobile */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
@@ -157,10 +147,9 @@ export default function Navbar() {
             }`}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* 🔹 Header Sidebar */}
             <div>
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-semibold  text-primary">Menu</h2>
+                <h2 className="text-2xl font-semibold text-primary">Menu</h2>
                 <button
                   onClick={handleCloseSidebar}
                   className="p-2 rounded-full hover:bg-slate-100 transition-all duration-300 hover:rotate-90"
@@ -170,33 +159,20 @@ export default function Navbar() {
                 </button>
               </div>
 
-              {/* 🔹 Navigasi Menu */}
+              {/* Menu Links */}
               <nav className="flex flex-col gap-3 text-xl font-medium">
-                <Link
-                  href="#"
-                  className="flex items-center gap-2 hover:text-primary/90"
-                  onClick={handleCloseSidebar}
-                >
+                <Link href="#" className="flex items-center gap-2 hover:text-primary/90" onClick={handleCloseSidebar}>
                   <Home size={18} /> Beranda
                 </Link>
-                <Link
-                  href="#"
-                  className="flex items-center gap-2 hover:text-primary/90"
-                  onClick={handleCloseSidebar}
-                >
+                <Link href="#" className="flex items-center gap-2 hover:text-primary/90" onClick={handleCloseSidebar}>
                   <Heart size={18} /> Wishlist
                 </Link>
-                <Link
-                  href="#"
-                  className="flex items-center gap-2 hover:text-primary/90"
-                  onClick={handleCloseSidebar}
-                >
+                <Link href="#" className="flex items-center gap-2 hover:text-primary/90" onClick={handleCloseSidebar}>
                   <Package size={18} /> Kelola Produk
                 </Link>
               </nav>
             </div>
 
-            {/* 🔹 Bagian User */}
             {user && (
               <div className="flex flex-col gap-3 border-slate-300 bg-primary/10 p-4 rounded-2xl">
                 <div className="flex items-center gap-3">
@@ -213,7 +189,7 @@ export default function Navbar() {
                     handleCloseSidebar();
                     window.location.href = "/";
                   }}
-                  className=" border-t pt-4 border-slate-300 flex items-center justify-center gap-2 text-sm text-primary hover:underline"
+                  className="border-t pt-4 border-slate-300 flex items-center justify-center gap-2 text-sm text-primary hover:underline"
                 >
                   <LogOut size={16} /> Keluar
                 </button>
