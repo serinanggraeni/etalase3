@@ -234,6 +234,17 @@ export default function ProductList() {
                   WhatsApp
                 </a>
               )}
+               {modalProduct.whatsApp && (
+                <a
+                  href={toUrl(modalProduct.whatsApp)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 border border-slate-300 rounded-lg px-4 py-2 text-sm font-semibold text-black hover:border-[#25D366] transition-colors"
+                >
+                  <Image src="/whatsapp.png" alt="WhatsApp" width={20} height={20} />
+                  WhatsApp
+                </a>
+              )}
               {modalProduct.tiktok && (
                 <a
                   href={toUrl(modalProduct.tiktok)}
