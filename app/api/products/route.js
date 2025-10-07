@@ -4,25 +4,23 @@ export const revalidate = 0;
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-const toUrl = (u = "") =>
-  u && /^https?:\/\//i.test(u) ? u : u ? `https://${u}` : "";
+const toUrl = (u = "") => (u && /^https?:\/\//i.test(u) ? u : u ? `https://${u}` : "");
 
 // GET: list products
 export async function GET() {
   try {
-    const rows = await prisma.product.findMany({
-      orderBy: { createdAt: "desc" },
-    });
+    const rows = await prisma.product.findMany({ orderBy: { createdAt: "desc" } });
 
-    // flatten + aman numerik
     const products = rows.map((r) => ({
       id: r.id,
+      name: r.name ?? "",
+      whatsapp: r.whatsapp ?? "",       // <- konsisten
       image: r.image ?? "",
-      whatsApp: r.whatsApp ?? "",
       tiktok: r.tiktok ?? "",
       shopee: toUrl(r.shopee ?? ""),
-      category: r?.category?.name ?? r?.category ?? "",
+      category: r.category ?? "",
       price: Number(r.price ?? 0),
+      createdAt: r.createdAt,           // untuk tampilan tabel
     }));
 
     return NextResponse.json(products, { status: 200 });
@@ -38,12 +36,9 @@ export async function GET() {
 // POST: create product
 export async function POST(req) {
   try {
-    const body = await req.json();
-    const { name, whatsApp, tiktok, shopee, category, price, image } = body;
+    const { name, whatsapp, tiktok, shopee, category, price, image } = await req.json();
 
-    // Validasi sederhana
-    if (!name || !whatsApp || !tiktok || !shopee || !category || !price || !image) {
-
+    if (![name, whatsapp, tiktok, shopee, category, price, image].every(Boolean)) {
       return NextResponse.json(
         { error: "VALIDATION", message: "Semua field wajib diisi." },
         { status: 400 }
@@ -53,7 +48,7 @@ export async function POST(req) {
     const created = await prisma.product.create({
       data: {
         name,
-        whatsApp,
+        whatsapp,                        // <- konsisten
         tiktok,
         shopee: toUrl(shopee),
         category,
@@ -62,14 +57,19 @@ export async function POST(req) {
       },
     });
 
-    return NextResponse.json(
-      {
-        ...created,
-        shopee: toUrl(created.shopee ?? ""),
-        price: Number(created.price ?? 0),
-      },
-      { status: 201 }
-    );
+    const out = {
+      id: created.id,
+      name: created.name ?? "",
+      whatsapp: created.whatsapp ?? "",
+      image: created.image ?? "",
+      tiktok: created.tiktok ?? "",
+      shopee: toUrl(created.shopee ?? ""),
+      category: created.category ?? "",
+      price: Number(created.price ?? 0),
+      createdAt: created.createdAt,
+    };
+
+    return NextResponse.json(out, { status: 201 });
   } catch (e) {
     console.error("[POST /api/products]", e);
     return NextResponse.json(

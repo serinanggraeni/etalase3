@@ -1,188 +1,247 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Save, X, Loader2, ExternalLink } from "lucide-react";
+
+const toUrl = (u = "") => (u && /^https?:\/\//i.test(u) ? u : u ? `https://${u}` : "");
+const toWa = (raw = "") => {
+  const d = (raw || "").replace(/\D/g, "");
+  if (!d) return "";
+  const norm = d.startsWith("62") ? d : d.startsWith("0") ? "62" + d.slice(1) : d;
+  return `https://wa.me/${norm}`;
+};
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState([]);
-  const [filtered, setFiltered] = useState([]);
-  const [search, setSearch] = useState("");
-  const [showModal, setShowModal] = useState(false);
+  const [items, setItems] = useState([]);
+  const [q, setQ] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
 
-  // form data
-  const [form, setForm] = useState({
-    name: "",
-    whatsApp: "",
-    tiktok: "",
-    shopee: "",
-    category: "",
-    price: "",
-    image: "",
-  });
+  // modal
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const empty = { name: "", whatsapp: "", tiktok: "", shopee: "", category: "", price: "", image: "" };
+  const [form, setForm] = useState(empty);
 
-  // ambil data produk
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  async function fetchProducts() {
+  async function load() {
     try {
-      const res = await axios.get("/api/products");
-      setProducts(res.data);
-      setFiltered(res.data);
-    } catch (err) {
-      console.error("Gagal memuat produk:", err);
+      setErr(""); setLoading(true);
+      const { data } = await axios.get("/api/products");
+      setItems(Array.isArray(data) ? data : []);
+    } catch (e) {
+      setErr(e?.response?.data?.message || e.message || "Gagal memuat");
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
+  }
+  useEffect(() => { load(); }, []);
+
+  const filtered = useMemo(() => {
+    const s = q.toLowerCase();
+    return items.filter((p) =>
+      (p.name || "").toLowerCase().includes(s) ||
+      (p.whatsapp || "").toLowerCase().includes(s) ||
+      (p.tiktok || "").toLowerCase().includes(s) ||
+      (p.shopee || "").toLowerCase().includes(s) ||
+      (p.category || "").toLowerCase().includes(s)
+    );
+  }, [items, q]);
+
+  function openNew() {
+    setEditing(null);
+    setForm(empty);
+    setOpen(true);
+  }
+  function openEdit(p) {
+    setEditing(p);
+    setForm({
+      name: p.name || "",
+      whatsapp: p.whatsapp || "",
+      tiktok: p.tiktok || "",
+      shopee: p.shopee || "",
+      category: p.category || "",
+      price: p.price ?? "",
+      image: p.image || "",
+    });
+    setOpen(true);
+  }
+
+  async function onSubmit(e) {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const payload = { ...form, price: parseFloat(form.price || 0) };
+      if (editing) {
+        await axios.put(`/api/products/${editing.id}`, payload);
+      } else {
+        await axios.post("/api/products", payload);
+      }
+      setOpen(false);
+      setEditing(null);
+      setForm(empty);
+      await load();
+    } catch (e) {
+      alert(e?.response?.data?.message || e.message || "Gagal menyimpan");
+    } finally {
+      setSaving(false);
     }
   }
 
-  // filter pencarian
-  useEffect(() => {
-    const lower = search.toLowerCase();
-    setFiltered(
-      products.filter(
-        (p) =>
-          p.name.toLowerCase().includes(lower) ||
-          (p.whatsApp && p.whatsApp.toLowerCase().includes(lower)) ||
-          (p.tiktok && p.tiktok.toLowerCase().includes(lower)) ||
-          (p.shopee && p.shopee.toLowerCase().includes(lower)) ||
-          (p.category && p.category.toLowerCase().includes(lower))
-      )
-    );
-  }, [search, products]);
-
-  // tambah produk
-  async function handleSubmit(e) {
-    e.preventDefault();
+  async function onDelete(p) {
+    if (!confirm(`Hapus produk: ${p.name || p.tiktok || "(tanpa nama)"} ?`)) return;
     try {
-      await axios.post("/api/products", {
-        ...form,
-        price: parseFloat(form.price),
-      });
-      setShowModal(false);
-      setForm({
-        name: "",
-        whatsApp: "",
-        tiktok: "",
-        shopee: "",
-        category: "",
-        price: "",
-        image: "",
-      });
-      fetchProducts();
-    } catch (err) {
-      console.error("Gagal menambahkan produk:", err);
+      await axios.delete(`/api/products/${p.id}`);
+      await load();
+    } catch (e) {
+      alert(e?.response?.data?.message || e.message || "Gagal menghapus");
     }
   }
 
   return (
-    <div className="p-6">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold">Daftar Produk</h1>
-        <button
-          onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700"
-        >
-          <Plus size={18} /> Tambahkan Produk
-        </button>
-      </div>
+    <main className="max-w-6xl mx-auto p-6 space-y-6">
+      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">Kelola Produk</h1>
+          <p className="text-sm text-slate-500">Total: {items.length}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Cari nama/WA/tiktok/shopee/kategori…"
+              className="w-72 rounded-full border border-slate-300 pl-9 pr-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+            />
+          </div>
+          <button onClick={openNew} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-white text-sm font-semibold hover:bg-primary/90">
+            <Plus className="w-4 h-4" /> Tambah
+          </button>
+        </div>
+      </header>
 
-      {/* Search */}
-      <div className="relative mb-4">
-        <Search className="absolute left-3 top-3 text-gray-400" size={18} />
-        <input
-          type="text"
-          placeholder="Cari produk..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-10 pr-3 py-2 border border-gray-300 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
+      {err && <div className="rounded-lg border border-red-200 bg-red-50 text-red-700 px-4 py-3">{err}</div>}
+      {loading && <div className="text-slate-600 flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Memuat…</div>}
 
-      {/* Tabel Produk */}
-      <div className="overflow-x-auto border rounded-xl shadow-sm">
-        <table className="min-w-full border-collapse">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="p-3 text-left">Gambar</th>
-              <th className="p-3 text-left">Nama</th>
-              <th className="p-3 text-left">WhatsApp</th>
-              <th className="p-3 text-left">Tiktok</th>
-              <th className="p-3 text-left">Shopee</th>
-              <th className="p-3 text-left">Kategori</th>
-              <th className="p-3 text-left">Harga</th>
-              <th className="p-3 text-left">Tanggal</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length > 0 ? (
-              filtered.map((product) => (
-                <tr key={product.id} className="border-t hover:bg-gray-50">
-                  <td className="p-3">
-                    <img
-                      src={product.image}
-                      alt={product.category}
-                      className="w-16 h-16 object-cover rounded-md"
-                    />
+      {!loading && (
+        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+          <table className="min-w-full text-sm">
+            <thead className="bg-slate-50">
+              <tr>
+                <th className="px-4 py-3 text-left">Gambar</th>
+                <th className="px-4 py-3 text-left">Nama</th>
+                <th className="px-4 py-3 text-left">WhatsApp</th>
+                <th className="px-4 py-3 text-left">Tiktok</th>
+                <th className="px-4 py-3 text-left">Shopee</th>
+                <th className="px-4 py-3 text-left">Kategori</th>
+                <th className="px-4 py-3 text-left">Harga</th>
+                <th className="px-4 py-3 text-left">Tanggal</th>
+                <th className="px-4 py-3 text-right w-28">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((p) => (
+                <tr key={p.id} className="border-t">
+                  <td className="px-4 py-3">
+                    <img src={p.image || "https://placehold.co/80x60"} alt={p.category || "img"} className="w-16 h-12 rounded-md border object-cover" />
                   </td>
-                  <td className="p-3">{product.name}</td>
-                  <td className="p-3">{product.whatsApp}</td>
-                  <td className="p-3">{product.tiktok}</td>
-                  <td className="p-3">{product.shopee}</td>
-                  <td className="p-3">{product.category}</td>
-                  <td className="p-3">
-                    Rp {Number(product.price).toLocaleString()}
+                  <td className="px-4 py-3">{p.name || "-"}</td>
+                  <td className="px-4 py-3">
+                    {p.whatsapp ? (
+                      <a href={toWa(p.whatsapp)} className="text-green-600 underline" target="_blank" rel="noreferrer">
+                        {p.whatsapp}
+                      </a>
+                    ) : "-" }
                   </td>
-                  <td className="p-3">
-                    {new Date(product.createdAt).toLocaleDateString("id-ID")}
+                  <td className="px-4 py-3 truncate max-w-[220px]" title={p.tiktok}>{p.tiktok || "-"}</td>
+                  <td className="px-4 py-3">
+                    {p.shopee ? (
+                      <a href={toUrl(p.shopee)} className="inline-flex items-center gap-1 text-primary underline" target="_blank" rel="noreferrer">
+                        Buka <ExternalLink className="w-3 h-3" />
+                      </a>
+                    ) : "-" }
+                  </td>
+                  <td className="px-4 py-3">{p.category || "-"}</td>
+                  <td className="px-4 py-3">Rp {Number(p.price ?? 0).toLocaleString("id-ID")}</td>
+                  <td className="px-4 py-3">{p.createdAt ? new Date(p.createdAt).toLocaleDateString("id-ID") : "-"}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex justify-end gap-2">
+                      <button onClick={() => openEdit(p)} className="inline-flex items-center gap-1 rounded-md border px-2 py-1 hover:bg-slate-50">
+                        <Pencil className="w-4 h-4" /> Edit
+                      </button>
+                      <button onClick={() => onDelete(p)} className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-red-600 border-red-200 hover:bg-red-50">
+                        <Trash2 className="w-4 h-4" /> Hapus
+                      </button>
+                    </div>
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="8" className="text-center p-4 text-gray-500">
-                  Tidak ada produk ditemukan
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+              ))}
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={9} className="px-4 py-10 text-center text-slate-500">Tidak ada data.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-      {/* Modal Tambah Produk */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
-            <h2 className="text-lg font-semibold mb-4">Tambah Produk Baru</h2>
+      {/* Modal Form */}
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-xl rounded-2xl bg-white shadow-xl">
+            <div className="flex items-center justify-between border-b px-5 py-3">
+              <h3 className="font-semibold">{editing ? "Edit Produk" : "Tambah Produk"}</h3>
+              <button className="p-1 rounded-md hover:bg-slate-100" onClick={() => setOpen(false)}>
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-            <form onSubmit={handleSubmit} className="space-y-3">
-              {["name", "whatsApp", "tiktok", "shopee", "category", "price", "image"].map(
-                (field) => (
-                  <input
-                    key={field}
-                    type={field === "price" ? "number" : "text"}
-                    placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
-                    value={form[field]}
-                    onChange={(e) =>
-                      setForm((prev) => ({ ...prev, [field]: e.target.value }))
-                    }
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                )
+            <form onSubmit={onSubmit} className="grid gap-4 p-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-slate-600 mb-1">Nama</label>
+                  <input value={form.name} onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))} className="w-full rounded-md border px-3 py-2 text-sm" required />
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-600 mb-1">WhatsApp</label>
+                  <input value={form.whatsapp} onChange={(e) => setForm((s) => ({ ...s, whatsapp: e.target.value }))} className="w-full rounded-md border px-3 py-2 text-sm" required />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm text-slate-600 mb-1">Judul/Deskripsi TikTok</label>
+                  <input value={form.tiktok} onChange={(e) => setForm((s) => ({ ...s, tiktok: e.target.value }))} className="w-full rounded-md border px-3 py-2 text-sm" required />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm text-slate-600 mb-1">Link Shopee</label>
+                  <input type="url" value={form.shopee} onChange={(e) => setForm((s) => ({ ...s, shopee: e.target.value }))} className="w-full rounded-md border px-3 py-2 text-sm" placeholder="https://shopee.co.id/..." required />
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-600 mb-1">Kategori</label>
+                  <input value={form.category} onChange={(e) => setForm((s) => ({ ...s, category: e.target.value }))} className="w-full rounded-md border px-3 py-2 text-sm" required />
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-600 mb-1">Harga</label>
+                  <input type="number" min="0" step="1" value={form.price} onChange={(e) => setForm((s) => ({ ...s, price: e.target.value }))} className="w-full rounded-md border px-3 py-2 text-sm" required />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm text-slate-600 mb-1">URL Gambar</label>
+                  <input type="url" value={form.image} onChange={(e) => setForm((s) => ({ ...s, image: e.target.value }))} className="w-full rounded-md border px-3 py-2 text-sm" required />
+                </div>
+              </div>
+
+              {form.image && (
+                <div className="rounded-lg border p-3">
+                  <p className="text-xs text-slate-500 mb-2">Preview</p>
+                  <img src={form.image} alt="preview" className="w-full h-48 object-cover rounded-md border" />
+                </div>
               )}
 
-              <div className="flex justify-end gap-2 mt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 rounded-lg border hover:bg-gray-100"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
-                >
+              <div className="flex items-center justify-end gap-2 pt-1">
+                <button type="button" onClick={() => setOpen(false)} className="rounded-md border px-4 py-2 text-sm hover:bg-slate-50">Batal</button>
+                <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-white text-sm font-semibold disabled:opacity-60">
+                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   Simpan
                 </button>
               </div>
@@ -190,6 +249,6 @@ export default function ProductsPage() {
           </div>
         </div>
       )}
-    </div>
+    </main>
   );
 }

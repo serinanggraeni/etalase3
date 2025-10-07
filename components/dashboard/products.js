@@ -234,9 +234,9 @@ export default function ProductList() {
                   WhatsApp
                 </a>
               )}
-               {modalProduct.whatsApp && (
+               {modalProduct.whatsapp && (
                 <a
-                  href={toUrl(modalProduct.whatsApp)}
+                  href={toUrl(modalProduct.whatsapp)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 border border-slate-300 rounded-lg px-4 py-2 text-sm font-semibold text-black hover:border-[#25D366] transition-colors"
