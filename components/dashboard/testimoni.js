@@ -10,40 +10,15 @@ export default function TestimoniPage() {
   const [offset, setOffset] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // 🔁 Simulasi fetch data (bisa diganti ke API nanti)
+  // 🔁 Simulasi fetch data
   useEffect(() => {
     const timer = setTimeout(() => {
       setTestimonials([
-        {
-          id: 1,
-          name: "Andi",
-          rating: 5,
-          message: "Pelayanan sangat memuaskan! Barang cepat sampai.",
-        },
-        {
-          id: 2,
-          name: "Budi",
-          rating: 4,
-          message: "Produk bagus, hanya saja pengiriman agak lama.",
-        },
-        {
-          id: 3,
-          name: "Citra",
-          rating: 5,
-          message: "Sangat suka dengan kualitasnya. Akan beli lagi!",
-        },
-        {
-          id: 4,
-          name: "Dewi",
-          rating: 5,
-          message: "Harga terjangkau dan kualitas terbaik.",
-        },
-        {
-          id: 5,
-          name: "Eka",
-          rating: 4,
-          message: "Cukup puas, semoga lebih cepat responnya.",
-        },
+        { id: 1, name: "Andi", rating: 5, message: "Pelayanan sangat memuaskan! Barang cepat sampai." },
+        { id: 2, name: "Budi", rating: 4, message: "Produk bagus, hanya saja pengiriman agak lama." },
+        { id: 3, name: "Citra", rating: 5, message: "Sangat suka dengan kualitasnya. Akan beli lagi!" },
+        { id: 4, name: "Dewi", rating: 5, message: "Harga terjangkau dan kualitas terbaik." },
+        { id: 5, name: "Eka", rating: 4, message: "Cukup puas, semoga lebih cepat responnya." },
       ]);
       setLoading(false);
     }, 1500);
@@ -60,35 +35,31 @@ export default function TestimoniPage() {
   }, []);
 
   return (
-    <section className="py-12 px-6">
-      <h2 className="text-2xl font-bold text-slate-800 mb-8 text-center">
+    <section className="py-10 px-4 sm:px-6">
+      <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-6 text-center">
         Testimoni Pelanggan
       </h2>
 
       {/* 🧾 SCROLL TESTIMONI */}
       <div className="overflow-hidden relative w-full pointer-events-none">
         <div
-          className="flex gap-6 transition-transform"
+          className="flex gap-4 sm:gap-6 transition-transform"
           style={{
             transform: `translateX(${offset}%)`,
             width: `${(loading ? 5 : testimonials.length) * 2 * 18}%`,
           }}
         >
-          {/* Jika masih loading → tampilkan skeleton */}
           {loading
             ? Array.from({ length: 5 }).map((_, i) => (
                 <div
                   key={i}
-                  className="flex-shrink-0 w-72 bg-white border border-slate-200 rounded-2xl shadow-sm p-6 animate-pulse"
+                  className="flex-shrink-0 w-56 sm:w-72 bg-white border border-slate-200 rounded-2xl shadow-sm p-4 sm:p-6 animate-pulse"
                 >
-                  <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-slate-200" />
-                  <div className="h-4 w-24 bg-slate-200 rounded mx-auto mb-3" />
+                  <div className="w-14 sm:w-16 h-14 sm:h-16 mx-auto mb-3 rounded-full bg-slate-200" />
+                  <div className="h-3 sm:h-4 w-20 sm:w-24 bg-slate-200 rounded mx-auto mb-3" />
                   <div className="flex justify-center mb-3 gap-1">
                     {Array.from({ length: 5 }).map((_, j) => (
-                      <div
-                        key={j}
-                        className="w-5 h-5 bg-slate-200 rounded-full"
-                      ></div>
+                      <div key={j} className="w-4 h-4 sm:w-5 sm:h-5 bg-slate-200 rounded-full"></div>
                     ))}
                   </div>
                   <div className="space-y-2">
@@ -101,19 +72,19 @@ export default function TestimoniPage() {
             : [...testimonials, ...testimonials].map((t, i) => (
                 <div
                   key={i}
-                  className="flex-shrink-0 w-72 bg-white border border-slate-200 rounded-2xl shadow-sm p-6 hover:shadow-md transition-all text-center"
+                  className="flex-shrink-0 w-56 sm:w-72 bg-white border border-slate-200 rounded-2xl shadow-sm p-4 sm:p-6 hover:shadow-md transition-all text-center"
                 >
-                  <div className="w-16 h-16 flex items-center justify-center rounded-full bg-indigo-500 text-white font-bold text-2xl mx-auto mb-3">
+                  <div className="w-14 sm:w-16 h-14 sm:h-16 flex items-center justify-center rounded-full bg-indigo-500 text-white font-bold text-xl sm:text-2xl mx-auto mb-3">
                     {t.name.charAt(0).toUpperCase()}
                   </div>
-                  <h4 className="font-semibold text-lg text-slate-800 mb-2">
+                  <h4 className="font-semibold text-base sm:text-lg text-slate-800 mb-2">
                     {t.name}
                   </h4>
-                  <div className="flex justify-center mb-3">
+                  <div className="flex justify-center mb-2 sm:mb-3">
                     {Array.from({ length: 5 }).map((_, starIndex) => (
                       <Star
                         key={starIndex}
-                        className={`w-5 h-5 ${
+                        className={`w-4 h-4 sm:w-5 sm:h-5 ${
                           starIndex < t.rating
                             ? "text-yellow-400 fill-yellow-400"
                             : "text-slate-300"
@@ -121,7 +92,7 @@ export default function TestimoniPage() {
                       />
                     ))}
                   </div>
-                  <p className="text-slate-600 text-sm leading-relaxed">
+                  <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
                     {t.message}
                   </p>
                 </div>
@@ -131,10 +102,10 @@ export default function TestimoniPage() {
 
       {/* 🧭 Tombol buka modal */}
       {!loading && (
-        <div className="text-center mt-10">
+        <div className="text-center mt-8 sm:mt-10">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-full transition-all"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm sm:text-base px-5 sm:px-6 py-2.5 sm:py-3 rounded-full transition-all"
           >
             Berikan Testimoni
           </button>
@@ -143,16 +114,16 @@ export default function TestimoniPage() {
 
       {/* 🪟 Modal Form Input */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-lg p-6 relative">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-lg p-5 sm:p-6 relative">
             <button
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
+              className="absolute top-3 right-3 text-slate-400 hover:text-slate-600"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <h3 className="text-xl font-semibold text-slate-800 mb-4 text-center">
+            <h3 className="text-lg sm:text-xl font-semibold text-slate-800 mb-4 text-center">
               Tambahkan Testimoni
             </h3>
 
@@ -164,7 +135,7 @@ export default function TestimoniPage() {
                 <input
                   type="text"
                   placeholder="Contoh: Andi"
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
                 />
               </div>
 
@@ -174,7 +145,7 @@ export default function TestimoniPage() {
                 </label>
                 <textarea
                   placeholder="Tuliskan pengalaman Anda..."
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 h-24 resize-none"
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 h-24 resize-none text-sm"
                 />
               </div>
 
@@ -187,7 +158,7 @@ export default function TestimoniPage() {
                     <Star
                       key={i}
                       onClick={() => setRating(i + 1)}
-                      className={`w-6 h-6 cursor-pointer transition-colors ${
+                      className={`w-5 h-5 sm:w-6 sm:h-6 cursor-pointer transition-colors ${
                         i < rating
                           ? "text-yellow-400 fill-yellow-400"
                           : "text-slate-400"
@@ -199,7 +170,7 @@ export default function TestimoniPage() {
 
               <button
                 type="submit"
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-lg w-full mt-3"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm sm:text-base px-4 py-2 sm:py-2.5 rounded-lg w-full mt-3"
               >
                 Kirim
               </button>

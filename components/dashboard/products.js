@@ -14,7 +14,8 @@ export default function ProductList() {
   const [modalProduct, setModalProduct] = useState(null);
 
   const itemsPerPage = 8;
-  const toUrl = (u = "") => (u && /^https?:\/\//i.test(u) ? u : u ? `https://${u}` : "#");
+  const toUrl = (u = "") =>
+    u && /^https?:\/\//i.test(u) ? u : u ? `https://${u}` : "#";
 
   // Ambil data produk
   useEffect(() => {
@@ -46,7 +47,8 @@ export default function ProductList() {
 
   // Filter produk
   const filteredProducts = products.filter((p) => {
-    const matchCategory = activeCategory === "Semua" || p.category === activeCategory;
+    const matchCategory =
+      activeCategory === "Semua" || p.category === activeCategory;
     const matchSearch =
       p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.tiktok?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -57,7 +59,10 @@ export default function ProductList() {
 
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentProducts = filteredProducts.slice(startIndex, startIndex + itemsPerPage);
+  const currentProducts = filteredProducts.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
 
   const goToPage = (page) => {
     if (page >= 1 && page <= totalPages) setCurrentPage(page);
@@ -107,7 +112,7 @@ export default function ProductList() {
       </div>
 
       {/* DAFTAR PRODUK */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {loading
           ? Array.from({ length: itemsPerPage }).map((_, i) => (
               <div
@@ -213,18 +218,25 @@ export default function ProductList() {
 
             <p className="flex items-center justify-center mt-4 mb-4 gap-1 text-sm text-slate-700">
               Lanjutkan pembelian{" "}
-              <span className="font-semibold text-slate-900">{modalProduct.name}</span>
+              <span className="font-semibold text-slate-900">
+                {modalProduct.name}
+              </span>
             </p>
 
             <div className="flex flex-col gap-2">
               {modalProduct.whatsApp && (
                 <a
-                  href={toUrl(modalProduct.whatsApp)}
+                  href={toUrl(modalProduct.whatsapp)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 border border-slate-300 rounded-lg px-4 py-2 text-sm font-semibold text-black hover:border-[#25D366] transition-colors"
                 >
-                  <Image src="/whatsapp.png" alt="WhatsApp" width={20} height={20} />
+                  <Image
+                    src="/whatsapp.png"
+                    alt="WhatsApp"
+                    width={20}
+                    height={20}
+                  />
                   WhatsApp
                 </a>
               )}
@@ -236,7 +248,12 @@ export default function ProductList() {
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 border border-slate-300 rounded-lg px-4 py-2 text-sm font-semibold text-black hover:border-[#69C9D0] transition-colors"
                 >
-                  <Image src="/tiktok.png" alt="TikTok" width={20} height={20} />
+                  <Image
+                    src="/tiktok.png"
+                    alt="TikTok"
+                    width={20}
+                    height={20}
+                  />
                   TikTok
                 </a>
               )}
@@ -248,7 +265,12 @@ export default function ProductList() {
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 border border-slate-300 rounded-lg px-4 py-2 text-sm font-semibold bg-background text-[#EE4D2D] hover:border-[#d84424] transition-colors"
                 >
-                  <Image src="/shopee.png" alt="Shopee" width={20} height={20} />
+                  <Image
+                    src="/shopee.png"
+                    alt="Shopee"
+                    width={20}
+                    height={20}
+                  />
                   Shopee
                 </a>
               )}

@@ -97,7 +97,7 @@ export default function Navbar() {
               <Link href="#" className="inline-flex items-center gap-1 hover:text-primary/90">
                 <Heart size={18} /> Wishlist
               </Link>
-              <Link href="#" className="inline-flex items-center gap-1 hover:text-primary/90">
+              <Link href="/admin/kelola-products" className="inline-flex items-center gap-1 hover:text-primary/90">
                 <Package size={18} /> Kelola Produk
               </Link>
             </nav>
@@ -167,7 +167,7 @@ export default function Navbar() {
                 <Link href="#" className="flex items-center gap-2 hover:text-primary/90" onClick={handleCloseSidebar}>
                   <Heart size={18} /> Wishlist
                 </Link>
-                <Link href="#" className="flex items-center gap-2 hover:text-primary/90" onClick={handleCloseSidebar}>
+                <Link href="/admin/kelola-products" className="flex items-center gap-2 hover:text-primary/90" onClick={handleCloseSidebar}>
                   <Package size={18} /> Kelola Produk
                 </Link>
               </nav>
