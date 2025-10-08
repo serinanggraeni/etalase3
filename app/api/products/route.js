@@ -18,8 +18,9 @@ export async function GET() {
     const products = rows.map((r) => ({
       id: r.id,
       image: r.image ?? "",
+      name: r.name ?? "",
       whatsApp: r.whatsApp ?? "",
-      tiktok: r.tiktok ?? "",
+      tiktok: toUrl(r.tiktok ?? ""),
       shopee: toUrl(r.shopee ?? ""),
       category: r?.category?.name ?? r?.category ?? "",
       price: Number(r.price ?? 0),

@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Search, ChevronLeft, ChevronRight, X } from "lucide-react";
@@ -11,8 +12,8 @@ export default function ProductList() {
   const [categories, setCategories] = useState(["Semua"]);
   const [loading, setLoading] = useState(true);
   const [modalProduct, setModalProduct] = useState(null);
-  const itemsPerPage = 8;
 
+  const itemsPerPage = 8;
   const toUrl = (u = "") => (u && /^https?:\/\//i.test(u) ? u : u ? `https://${u}` : "#");
 
   // Ambil data produk
@@ -39,6 +40,7 @@ export default function ProductList() {
         setLoading(false);
       }
     }
+
     fetchProducts();
   }, []);
 
@@ -145,14 +147,6 @@ export default function ProductList() {
                     <span className="font-bold text-slate-800 text-sm">
                       Rp {Number(product.price).toLocaleString("id-ID")}
                     </span>
-                    <a
-                      href={toUrl(product.shopee)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center rounded-lg bg-primary px-2.5 py-1 text-background text-xs font-medium hover:bg-primary/80 transition-colors"
-                    >
-                      Lihat
-                    </a>
                   </div>
                 </div>
               </article>
@@ -223,18 +217,7 @@ export default function ProductList() {
             </p>
 
             <div className="flex flex-col gap-2">
-              {modalProduct.whatsapp && (
-                <a
-                  href={toUrl(modalProduct.whatsapp)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 border border-slate-300 rounded-lg px-4 py-2 text-sm font-semibold text-black hover:border-[#25D366] transition-colors"
-                >
-                  <Image src="/whatsapp.png" alt="WhatsApp" width={20} height={20} />
-                  WhatsApp
-                </a>
-              )}
-               {modalProduct.whatsApp && (
+              {modalProduct.whatsApp && (
                 <a
                   href={toUrl(modalProduct.whatsApp)}
                   target="_blank"
@@ -245,6 +228,7 @@ export default function ProductList() {
                   WhatsApp
                 </a>
               )}
+
               {modalProduct.tiktok && (
                 <a
                   href={toUrl(modalProduct.tiktok)}
@@ -256,6 +240,7 @@ export default function ProductList() {
                   TikTok
                 </a>
               )}
+
               {modalProduct.shopee && (
                 <a
                   href={toUrl(modalProduct.shopee)}
