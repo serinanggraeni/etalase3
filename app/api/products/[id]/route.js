@@ -21,7 +21,7 @@ export async function GET(_req, { params }) {
     return NextResponse.json({
       id: r.id,
       name: r.name ?? "",
-      whatsApp: r.whatsApp ?? "",
+      whatsapp: r.whatsapp ?? "",
       tiktok: r.tiktok ?? "",
       shopee: toUrl(r.shopee ?? ""),
       category: r.category ?? "",
@@ -45,7 +45,7 @@ export async function PUT(req, { params }) {
     const body = await req.json();
     const data = {};
     if ("name" in body) data.name = body.name;
-    if ("whatsApp" in body) data.whatsApp = body.whatsApp;
+    if ("whatsapp" in body) data.whatsapp = body.whatsapp;
     if ("tiktok" in body) data.tiktok = body.tiktok;
     if ("shopee" in body) data.shopee = toUrl(body.shopee);
     if ("category" in body) data.category = body.category;
@@ -57,7 +57,7 @@ export async function PUT(req, { params }) {
     return NextResponse.json({
       id: updated.id,
       name: updated.name ?? "",
-      whatsApp: updated.whatsApp ?? "",
+      whatsapp: updated.whatsapp ?? "",
       tiktok: updated.tiktok ?? "",
       shopee: toUrl(updated.shopee ?? ""),
       category: updated.category ?? "",

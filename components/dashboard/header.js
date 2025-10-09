@@ -3,7 +3,7 @@ import { Store } from "lucide-react";
 
 export default function HomeHeader() {
   return (
-    <section className="rounded-3xl bg-gradient-to-r from-primary to-sky-400 text-background p-6 md:p-8 shadow-sm relative overflow-hidden">
+    <section className="rounded-3xl bg-gradient-to-r from-primary to-primary/70 text-background p-6 md:p-8 shadow-sm relative overflow-hidden">
       <div className="md:flex md:items-center">
         <div className="flex-1">
           <p className="text-background/80 font-semibold">Halo, Selamat Datang</p>
@@ -12,10 +12,10 @@ export default function HomeHeader() {
           </h2>
           <div className="mt-4">
             <a
-              href="#rekomendasi"
+              href="/wishlist"
               className="inline-flex items-center gap-2 rounded-lg bg-background text-primary font-semibold px-4 py-2 shadow hover:bg-slate-50"
             >
-              Lihat Rekomendasi
+              Wishlist Anda
             </a>
           </div>
         </div>

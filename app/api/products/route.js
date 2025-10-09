@@ -14,7 +14,7 @@ export async function GET() {
     const products = rows.map((r) => ({
       id: r.id,
       name: r.name ?? "",
-      whatsApp: r.whatsApp ?? "",       // <- konsisten
+      whatsapp: r.whatsapp ?? "",       // <- konsisten
       image: r.image ?? "",
       tiktok: toUrl(r.tiktok ?? ""),
 
@@ -37,9 +37,9 @@ export async function GET() {
 // POST: create product
 export async function POST(req) {
   try {
-    const { name, whatsApp, tiktok, shopee, category, price, image } = await req.json();
+    const { name, whatsapp, tiktok, shopee, category, price, image } = await req.json();
 
-    if (![name, whatsApp, tiktok, shopee, category, price, image].every(Boolean)) {
+    if (![name, whatsapp, tiktok, shopee, category, price, image].every(Boolean)) {
       return NextResponse.json(
         { error: "VALIDATION", message: "Semua field wajib diisi." },
         { status: 400 }
@@ -49,7 +49,7 @@ export async function POST(req) {
     const created = await prisma.product.create({
       data: {
         name,
-        whatsApp,                        // <- konsisten
+        whatsapp,                        // <- konsisten
         tiktok,
         shopee: toUrl(shopee),
         category,
@@ -61,7 +61,7 @@ export async function POST(req) {
     const out = {
       id: created.id,
       name: created.name ?? "",
-      whatsApp: created.whatsApp ?? "",
+      whatsapp: created.whatsapp ?? "",
       image: created.image ?? "",
       tiktok: created.tiktok ?? "",
       shopee: toUrl(created.shopee ?? ""),

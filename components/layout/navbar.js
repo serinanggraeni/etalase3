@@ -6,7 +6,7 @@ import {
   Home,
   Heart,
   Package,
-  User,
+  Settings,
   LogOut,
   ChevronDown,
   Menu,
@@ -22,6 +22,7 @@ export default function Navbar() {
   const [user, setUser] = useState(null);
   const [scrolled, setScrolled] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarVisible, setSidebarVisible] = useState(false); // 🔹 baru
   const [closing, setClosing] = useState(false);
 
   useEffect(() => {
@@ -44,28 +45,61 @@ export default function Navbar() {
 
   if (!showNavbar) return null;
 
-  const handleCloseSidebar = () => {
-    setClosing(true);
-    setTimeout(() => {
-      setSidebarOpen(false);
-      setClosing(false);
-    }, 300);
+  // 🔹 Fungsi baru agar animasi muncul halus
+  const openSidebar = () => {
+    setSidebarOpen(true);
+    setTimeout(() => setSidebarVisible(true), 10);
   };
 
-  const renderUserCircle = (name, size) => {
+  const handleCloseSidebar = () => {
+    setSidebarVisible(false);
+    setTimeout(() => {
+      setSidebarOpen(false);
+    }, 300); // sama dengan durasi animasi
+  };
+
+  // 🔹 Avatar user (bulat)
+  const renderUserCircle = (name, size = 10) => {
     const initial = name ? name[0].toUpperCase() : "?";
     return (
       <div
-        className={`w-${size} h-${size} flex items-center justify-center rounded-full bg-primary text-white font-semibold text-sm`}
+        className={`flex items-center justify-center rounded-full bg-primary text-white font-semibold text-sm`}
+        style={{
+          width: `${size * 4}px`,
+          height: `${size * 4}px`,
+          minWidth: `${size * 4}px`,
+        }}
       >
         {initial}
       </div>
     );
   };
 
+  const menuItems = [
+    { name: "Beranda", href: "/", icon: <Home size={18} />, roleMenu: "all" },
+    {
+      name: "Wishlist",
+      href: "/wishlist",
+      icon: <Heart size={18} />,
+      roleMenu: "all",
+    },
+    {
+      name: "Kelola Produk",
+      href: "/admin/kelola-products",
+      icon: <Package size={18} />,
+      roleMenu: "user",
+    },
+    {
+      name: "Settings",
+      href: "/admin/settings",
+      icon: <Settings size={18} />,
+      roleMenu: "user",
+    },
+  ];
+
   return (
     <>
-      {/* Navbar Desktop */}
+      {/* 🔹 Navbar Desktop */}
       <header
         className={`sticky top-5 z-40 mx-auto transition-all duration-500 ease-in-out py-2 px-2 ${
           scrolled
@@ -74,7 +108,7 @@ export default function Navbar() {
         }`}
       >
         <div
-          className={`px-4 py-3 flex items-center justify-between transition-all duration-500 ${
+          className={`px-4 flex items-center justify-between transition-all duration-500 ${
             scrolled ? "py-2" : "py-3"
           }`}
         >
@@ -91,23 +125,37 @@ export default function Navbar() {
           {/* Menu Desktop */}
           <div className="hidden md:flex items-center gap-4">
             <nav className="flex items-center gap-4 text-sm font-medium">
-              <Link href="#" className="inline-flex items-center gap-1 hover:text-primary/90">
-                <Home size={18} /> Beranda
-              </Link>
-              <Link href="#" className="inline-flex items-center gap-1 hover:text-primary/90">
-                <Heart size={18} /> Wishlist
-              </Link>
-              <Link href="/admin/kelola-products" className="inline-flex items-center gap-1 hover:text-primary/90">
-                <Package size={18} /> Kelola Produk
-              </Link>
+              {menuItems
+                .filter(
+                  (item) =>
+                    item.roleMenu === "all" ||
+                    (user && item.roleMenu === "user")
+                )
+                .map((item) => (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={`inline-flex items-center gap-1 transition-colors hover:text-primary/90 ${
+                      pathname === item.href
+                        ? "text-primary font-semibold"
+                        : "text-slate-700"
+                    }`}
+                  >
+                    {item.icon} {item.name}
+                  </Link>
+                ))}
             </nav>
 
+            {/* 🔹 Profil Bulat */}
             {user && (
-              <details className="relative">
-                <summary className="list-none cursor-pointer inline-flex items-center gap-3 rounded-2xl border border-slate-400 px-4 py-2 text-sm font-semibold">
+              <details className="relative group">
+                <summary className="list-none cursor-pointer inline-flex items-center gap-2 border border-slate-300 rounded-full px-3 py-1.5 text-sm font-semibold hover:bg-slate-50 transition-all">
                   {renderUserCircle(user.name, 6)}
-                  <span>{user.name}</span>
-                  <ChevronDown size={16} className="text-slate-500" />
+                  <span className="ml-1">{user.name}</span>
+                  <ChevronDown
+                    size={16}
+                    className="text-slate-500 group-open:rotate-180 transition-transform"
+                  />
                 </summary>
                 <div className="absolute right-0 mt-2 w-36 rounded-xl border border-slate-200 bg-background shadow-lg">
                   <button
@@ -125,9 +173,9 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Tombol Menu HP */}
+          {/* Tombol Menu Mobile */}
           <button
-            onClick={() => setSidebarOpen(true)}
+            onClick={openSidebar}
             className="md:hidden p-2 rounded-xl border border-slate-300 hover:bg-slate-100"
           >
             <Menu size={22} />
@@ -135,18 +183,19 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* Sidebar Mobile */}
+      {/* 🔹 Sidebar Mobile (Animasi perbaikan) */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
           onClick={handleCloseSidebar}
         >
           <div
-            className={`absolute top-0 right-0 h-full w-64 bg-white shadow-2xl rounded-l-2xl p-5 flex flex-col justify-between ${
-              closing ? "animate-slide-out" : "animate-slide-in"
+            className={`absolute top-0 right-0 h-full w-72 bg-white shadow-2xl rounded-l-2xl p-6 flex flex-col justify-between transform transition-transform duration-300 ease-in-out ${
+              sidebarVisible ? "translate-x-0" : "translate-x-full"
             }`}
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Header */}
             <div>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-semibold text-primary">Menu</h2>
@@ -159,20 +208,30 @@ export default function Navbar() {
                 </button>
               </div>
 
-              {/* Menu Links */}
-              <nav className="flex flex-col gap-3 text-xl font-medium">
-                <Link href="#" className="flex items-center gap-2 hover:text-primary/90" onClick={handleCloseSidebar}>
-                  <Home size={18} /> Beranda
-                </Link>
-                <Link href="#" className="flex items-center gap-2 hover:text-primary/90" onClick={handleCloseSidebar}>
-                  <Heart size={18} /> Wishlist
-                </Link>
-                <Link href="/admin/kelola-products" className="flex items-center gap-2 hover:text-primary/90" onClick={handleCloseSidebar}>
-                  <Package size={18} /> Kelola Produk
-                </Link>
+              {/* Menu Items */}
+              <nav className="flex flex-col gap-4 text-base font-medium">
+                {menuItems
+                  .filter(
+                    (item) =>
+                      item.roleMenu === "all" ||
+                      (user && item.roleMenu === "user")
+                  )
+                  .map((item) => (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className={`flex items-center gap-2 hover:text-primary transition-colors ${
+                        pathname === item.href ? "text-primary" : "text-slate-700"
+                      }`}
+                      onClick={handleCloseSidebar}
+                    >
+                      {item.icon} {item.name}
+                    </Link>
+                  ))}
               </nav>
             </div>
 
+            {/* 🔹 Profil di bawah Sidebar */}
             {user && (
               <div className="flex flex-col gap-3 border-slate-300 bg-primary/10 p-4 rounded-2xl">
                 <div className="flex items-center gap-3">

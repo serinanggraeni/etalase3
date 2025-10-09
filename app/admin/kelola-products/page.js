@@ -21,7 +21,7 @@ export default function ProductsPage() {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(null);
-  const empty = { name: "", whatsApp: "", tiktok: "", shopee: "", category: "", price: "", image: "" };
+  const empty = { name: "", whatsapp: "", tiktok: "", shopee: "", category: "", price: "", image: "" };
   const [form, setForm] = useState(empty);
 
   async function load() {
@@ -42,7 +42,7 @@ export default function ProductsPage() {
     const s = q.toLowerCase();
     return items.filter((p) =>
       (p.name || "").toLowerCase().includes(s) ||
-      (p.whatsApp || "").toLowerCase().includes(s) ||
+      (p.whatsapp || "").toLowerCase().includes(s) ||
       (p.tiktok || "").toLowerCase().includes(s) ||
       (p.shopee || "").toLowerCase().includes(s) ||
       (p.category || "").toLowerCase().includes(s)
@@ -58,7 +58,7 @@ export default function ProductsPage() {
     setEditing(p);
     setForm({
       name: p.name || "",
-      whatsApp: p.whatsApp || "",
+      whatsapp: p.whatsapp || "",
       tiktok: p.tiktok || "",
       shopee: p.shopee || "",
       category: p.category || "",
@@ -149,9 +149,9 @@ export default function ProductsPage() {
                   </td>
                   <td className="px-4 py-3">{p.name || "-"}</td>
                   <td className="px-4 py-3">
-                    {p.whatsApp ? (
-                      <a href={toWa(p.whatsApp)} className="text-green-600 underline" target="_blank" rel="noreferrer">
-                        {p.whatsApp}
+                    {p.whatsapp ? (
+                      <a href={toWa(p.whatsapp)} className="text-green-600 underline" target="_blank" rel="noreferrer">
+                        {p.whatsapp}
                       </a>
                     ) : "-" }
                   </td>
@@ -207,7 +207,7 @@ export default function ProductsPage() {
                 </div>
                 <div>
                   <label className="block text-sm text-slate-600 mb-1">WhatsApp</label>
-                  <input value={form.whatsApp} onChange={(e) => setForm((s) => ({ ...s, whatsApp: e.target.value }))} className="w-full rounded-md border px-3 py-2 text-sm" required />
+                  <input value={form.whatsapp} onChange={(e) => setForm((s) => ({ ...s, whatsapp: e.target.value }))} className="w-full rounded-md border px-3 py-2 text-sm" required />
                 </div>
                 <div className="sm:col-span-2">
                   <label className="block text-sm text-slate-600 mb-1">Judul/Deskripsi TikTok</label>
@@ -227,7 +227,7 @@ export default function ProductsPage() {
                 </div>
                 <div className="sm:col-span-2">
                   <label className="block text-sm text-slate-600 mb-1">URL Gambar</label>
-                  <input type="url" value={form.image} onChange={(e) => setForm((s) => ({ ...s, image: e.target.value }))} className="w-full rounded-md border px-3 py-2 text-sm" required />
+                  <input type="url" value={form.image} onChange={(e) => setForm((s) => ({ ...s,image: e.target.value }))} className="w-full rounded-md border px-3 py-2 text-sm" required />
                 </div>
               </div>
 

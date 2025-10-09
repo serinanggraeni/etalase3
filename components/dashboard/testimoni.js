@@ -2,120 +2,229 @@
 
 import { useEffect, useState } from "react";
 import { Star, X } from "lucide-react";
+import axios from "axios";
+import Card from "../reusable/card";
 
 export default function TestimoniPage() {
-  const [rating, setRating] = useState(0);
-  const [loading, setLoading] = useState(true);
   const [testimonials, setTestimonials] = useState([]);
-  const [offset, setOffset] = useState(0);
+  const [myTestimoni, setMyTestimoni] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [form, setForm] = useState({ name: "", message: "" });
+  const [rating, setRating] = useState(0);
 
-  // 🔁 Simulasi fetch data
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setTestimonials([
-        { id: 1, name: "Andi", rating: 5, message: "Pelayanan sangat memuaskan! Barang cepat sampai." },
-        { id: 2, name: "Budi", rating: 4, message: "Produk bagus, hanya saja pengiriman agak lama." },
-        { id: 3, name: "Citra", rating: 5, message: "Sangat suka dengan kualitasnya. Akan beli lagi!" },
-        { id: 4, name: "Dewi", rating: 5, message: "Harga terjangkau dan kualitas terbaik." },
-        { id: 5, name: "Eka", rating: 4, message: "Cukup puas, semoga lebih cepat responnya." },
-      ]);
-      setLoading(false);
-    }, 1500);
+    async function fetchData() {
+      try {
+        // Ambil daftar testimoni umum
+        const res = await axios.get("/api/testimoni", {
+          withCredentials: true,
+        });
+        setTestimonials(res.data);
 
-    return () => clearTimeout(timer);
+        // Ambil testimoni milik user
+        try {
+          const me = await axios.get("/api/testimoni/getMe", {
+            withCredentials: true,
+          });
+          setMyTestimoni(me.data || null);
+        } catch (err) {
+          console.log("User belum punya testimoni", err);
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
   }, []);
 
-  // 🔁 Gerakkan kartu dari kanan ke kiri terus-menerus
+  // 🎨 Warna avatar
+  function stringToColor(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue = Math.abs(hash % 360);
+    return `hsl(${hue}, 70%, 55%)`;
+  }
+
+  // 🔄 Auto-scroll horizontal
   useEffect(() => {
-    const interval = setInterval(() => {
-      setOffset((prev) => (prev <= -100 ? 0 : prev - 0.05));
-    }, 16);
-    return () => clearInterval(interval);
-  }, []);
+    const container = document.getElementById("testimonial-scroll");
+    if (!container) return;
+
+    let scrollAmount = 0;
+    const scrollSpeed = 1;
+    const scroll = setInterval(() => {
+      if (container.scrollWidth - container.clientWidth <= scrollAmount) {
+        scrollAmount = 0;
+      } else {
+        scrollAmount += scrollSpeed;
+      }
+      container.scrollLeft = scrollAmount;
+    }, 30);
+
+    return () => clearInterval(scroll);
+  }, [testimonials]);
+
+  // 📝 Submit testimoni
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      let updatedData;
+      if (myTestimoni) {
+        const res = await axios.put(`/api/testimoni/${myTestimoni.id}`, {
+          ...form,
+          rating,
+        });
+        updatedData = res.data;
+        setTestimonials((prev) =>
+          prev.map((t) => (t.id === updatedData.id ? updatedData : t))
+        );
+        setMyTestimoni(updatedData);
+      } else {
+        const res = await axios.post("/api/testimoni", { ...form, rating });
+        updatedData = res.data.testimoni;
+        setTestimonials((prev) => [updatedData, ...prev]);
+        setMyTestimoni(updatedData);
+      }
+
+      // 🔧 Reset form setelah submit agar tidak double input
+      setForm({ name: "", message: "" });
+      setRating(0);
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // 🗑️ Hapus testimoni
+  const handleDelete = async () => {
+    if (!confirm("Yakin ingin menghapus testimoni ini?")) return;
+    try {
+      await axios.delete(`/api/testimoni/${myTestimoni.id}`);
+      setTestimonials((prev) => prev.filter((t) => t.id !== myTestimoni.id));
+      setMyTestimoni(null);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // 🪄 Fungsi untuk membuka modal (fix double input)
+  const openModal = (isEditing = false) => {
+    if (isEditing && myTestimoni) {
+      // kalau mode edit → isi dengan data lama
+      setForm({
+        name: myTestimoni.name,
+        message: myTestimoni.message,
+      });
+      setRating(myTestimoni.rating);
+    } else {
+      // kalau tambah baru → kosongkan form
+      setForm({ name: "", message: "" });
+      setRating(0);
+    }
+    setIsModalOpen(true);
+  };
 
   return (
-    <section className="py-10 px-4 sm:px-6">
-      <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-6 text-center">
+    <section className="py-12 px-4 sm:px-6 lg:px-12">
+      <h2 className="text-3xl font-bold text-slate-800 text-center mb-10">
         Testimoni Pelanggan
       </h2>
 
-      {/* 🧾 SCROLL TESTIMONI */}
-      <div className="overflow-hidden relative w-full pointer-events-none">
-        <div
-          className="flex gap-4 sm:gap-6 transition-transform"
-          style={{
-            transform: `translateX(${offset}%)`,
-            width: `${(loading ? 5 : testimonials.length) * 2 * 18}%`,
-          }}
-        >
-          {loading
-            ? Array.from({ length: 5 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="flex-shrink-0 w-56 sm:w-72 bg-white border border-slate-200 rounded-2xl shadow-sm p-4 sm:p-6 animate-pulse"
-                >
-                  <div className="w-14 sm:w-16 h-14 sm:h-16 mx-auto mb-3 rounded-full bg-slate-200" />
-                  <div className="h-3 sm:h-4 w-20 sm:w-24 bg-slate-200 rounded mx-auto mb-3" />
-                  <div className="flex justify-center mb-3 gap-1">
-                    {Array.from({ length: 5 }).map((_, j) => (
-                      <div key={j} className="w-4 h-4 sm:w-5 sm:h-5 bg-slate-200 rounded-full"></div>
-                    ))}
-                  </div>
-                  <div className="space-y-2">
-                    <div className="h-3 w-3/4 bg-slate-200 rounded mx-auto" />
-                    <div className="h-3 w-2/3 bg-slate-200 rounded mx-auto" />
-                    <div className="h-3 w-1/2 bg-slate-200 rounded mx-auto" />
-                  </div>
+      {/* Daftar testimoni */}
+      <div
+        className="flex gap-4 overflow-x-auto scrollbar-hide"
+        id="testimonial-scroll"
+      >
+        {loading
+          ? Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                className="bg-slate-100 md:w-72 h-48 sm:w-60 rounded-2xl animate-pulse"
+              />
+            ))
+          : testimonials.map((t) => (
+              <Card
+                key={t.id}
+                className="md:min-h-72 min-h-60 min-w-50 md:min-w-72 max-w-72 transition-all p-2 md:p-4 flex flex-col justify-between"
+              >
+                <div className="flex-1 flex flex-col justify-center">
+                  <p className="text-slate-700 text-sm mb-4 text-center">
+                    “{t.message}”
+                  </p>
                 </div>
-              ))
-            : [...testimonials, ...testimonials].map((t, i) => (
-                <div
-                  key={i}
-                  className="flex-shrink-0 w-56 sm:w-72 bg-white border border-slate-200 rounded-2xl shadow-sm p-4 sm:p-6 hover:shadow-md transition-all text-center"
-                >
-                  <div className="w-14 sm:w-16 h-14 sm:h-16 flex items-center justify-center rounded-full bg-indigo-500 text-white font-bold text-xl sm:text-2xl mx-auto mb-3">
-                    {t.name.charAt(0).toUpperCase()}
-                  </div>
-                  <h4 className="font-semibold text-base sm:text-lg text-slate-800 mb-2">
-                    {t.name}
-                  </h4>
-                  <div className="flex justify-center mb-2 sm:mb-3">
-                    {Array.from({ length: 5 }).map((_, starIndex) => (
+
+                <div>
+                  <div className="flex justify-center mb-3">
+                    {Array.from({ length: 5 }).map((_, i) => (
                       <Star
-                        key={starIndex}
-                        className={`w-4 h-4 sm:w-5 sm:h-5 ${
-                          starIndex < t.rating
+                        key={i}
+                        className={`w-5 h-5 ${
+                          i < t.rating
                             ? "text-yellow-400 fill-yellow-400"
                             : "text-slate-300"
                         }`}
                       />
                     ))}
                   </div>
-                  <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-                    {t.message}
-                  </p>
+
+                  <div className="flex gap-2 items-center mt-2 border-t border-slate-200 pt-2 md:pt-4">
+                    <div
+                      className="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm"
+                      style={{ backgroundColor: stringToColor(t.name || "A") }}
+                    >
+                      {(t.name || "?").charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex flex-col">
+                      <h4 className="text-xs md:text-sm font-semibold text-slate-800 leading-tight">
+                        {t.name}
+                      </h4>
+                      <p className="text-xs text-slate-400">
+                        {new Date(t.createdAt).toLocaleDateString("id-ID")}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              ))}
-        </div>
+              </Card>
+            ))}
       </div>
 
-      {/* 🧭 Tombol buka modal */}
+      {/* Tombol aksi */}
       {!loading && (
-        <div className="text-center mt-8 sm:mt-10">
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm sm:text-base px-5 sm:px-6 py-2.5 sm:py-3 rounded-full transition-all"
-          >
-            Berikan Testimoni
-          </button>
+        <div className="text-center mt-12">
+          {myTestimoni ? (
+            <div className="flex justify-center gap-3">
+              <button
+                onClick={() => openModal(true)} // ✨ edit mode
+                className="bg-background hover:bg-primary text-primary hover:text-white border border-primary font-semibold px-4 py-2 rounded-full shadow-md"
+              >
+                Edit Testimoni
+              </button>
+
+              <button
+                onClick={handleDelete}
+                className="bg-primary hover:bg-background border border-primary hover:text-primary text-white font-semibold px-4 py-2 rounded-full shadow-md"
+              >
+                Hapus
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => openModal(false)} // ✨ tambah mode
+              className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-full shadow-md"
+            >
+              Tambahkan Testimoni
+            </button>
+          )}
         </div>
       )}
 
-      {/* 🪟 Modal Form Input */}
+      {/* Modal form */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-lg p-5 sm:p-6 relative">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-lg p-6 relative animate-fadeIn">
             <button
               onClick={() => setIsModalOpen(false)}
               className="absolute top-3 right-3 text-slate-400 hover:text-slate-600"
@@ -123,56 +232,49 @@ export default function TestimoniPage() {
               <X className="w-5 h-5" />
             </button>
 
-            <h3 className="text-lg sm:text-xl font-semibold text-slate-800 mb-4 text-center">
-              Tambahkan Testimoni
+            <h3 className="text-lg font-semibold text-center mb-5">
+              {myTestimoni ? "Edit Testimoni" : "Tambah Testimoni"}
             </h3>
 
-            <form className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Nama Anda
-                </label>
-                <input
-                  type="text"
-                  placeholder="Contoh: Andi"
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-                />
-              </div>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <input
+                type="text"
+                placeholder="Nama Anda"
+                value={form.name}
+                maxLength={15}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                required
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-400"
+              />
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Testimoni
-                </label>
-                <textarea
-                  placeholder="Tuliskan pengalaman Anda..."
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 h-24 resize-none text-sm"
-                />
-              </div>
+              <textarea
+                placeholder="Tulis pengalaman Anda..."
+                value={form.message}
+                maxLength={150}
+                onChange={(e) => setForm({ ...form, message: e.target.value })}
+                required
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 h-24 resize-none focus:ring-2 focus:ring-indigo-400"
+              />
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Rating
-                </label>
-                <div className="flex gap-2 justify-center">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star
-                      key={i}
-                      onClick={() => setRating(i + 1)}
-                      className={`w-5 h-5 sm:w-6 sm:h-6 cursor-pointer transition-colors ${
-                        i < rating
-                          ? "text-yellow-400 fill-yellow-400"
-                          : "text-slate-400"
-                      }`}
-                    />
-                  ))}
-                </div>
+              <div className="flex justify-center gap-2">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    onClick={() => setRating(i + 1)}
+                    className={`w-7 h-7 cursor-pointer transition-colors ${
+                      i < rating
+                        ? "text-yellow-400 fill-yellow-400"
+                        : "text-slate-400"
+                    }`}
+                  />
+                ))}
               </div>
 
               <button
                 type="submit"
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm sm:text-base px-4 py-2 sm:py-2.5 rounded-lg w-full mt-3"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white w-full py-2 rounded-lg font-semibold shadow-md"
               >
-                Kirim
+                {myTestimoni ? "Simpan Perubahan" : "Kirim Testimoni"}
               </button>
             </form>
           </div>
