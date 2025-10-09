@@ -1,13 +1,39 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-// 🟡 PUT (edit testimoni)
+// 🟡 PUT (edit testimoni berdasarkan token dari cookie)
 export async function PUT(req, { params }) {
   try {
+    const { id } = await params;
+    const cookieHeader = req.headers.get("cookie") || "";
+    const tokenCookie = cookieHeader
+      .split("; ")
+      .find((c) => c.startsWith("tokenTestimoni="));
+
+    if (!tokenCookie) {
+      return NextResponse.json(
+        { error: "Tidak ada token testimoni di cookie" },
+        { status: 401 }
+      );
+    }
+
+    const token = tokenCookie.split("=")[1];
     const { name, message, rating } = await req.json();
 
+    // Pastikan testimoni milik token yang benar
+    const existing = await prisma.testimoni.findFirst({
+      where: { id: Number(id), token },
+    });
+
+    if (!existing) {
+      return NextResponse.json(
+        { error: "Testimoni tidak ditemukan atau bukan milik Anda" },
+        { status: 404 }
+      );
+    }
+
     const updated = await prisma.testimoni.update({
-      where: { id: Number(params.id) },
+      where: { id: Number(id) },
       data: { name, message, rating },
     });
 
@@ -21,11 +47,39 @@ export async function PUT(req, { params }) {
   }
 }
 
-// 🔴 DELETE (hapus testimoni)
-export async function DELETE(_, { params }) {
+// 🔴 DELETE (hapus testimoni berdasarkan token dari cookie)
+export async function DELETE(req, { params }) {
   try {
+    const { id } = await params;
+    const cookieHeader = req.headers.get("cookie") || "";
+    const tokenCookie = cookieHeader
+      .split("; ")
+      .find((c) => c.startsWith("tokenTestimoni="));
+
+    if (!tokenCookie) {
+      return NextResponse.json(
+        { error: "Tidak ada token testimoni di cookie" },
+        { status: 401 }
+      );
+    }
+
+    const token = tokenCookie.split("=")[1];
+
+    // Cek apakah testimoni benar milik token ini
+    const testimoni = await prisma.testimoni.findFirst({
+      where: { id: Number(id), token },
+    });
+
+    if (!testimoni) {
+      return NextResponse.json(
+        { error: "Testimoni tidak ditemukan atau bukan milik Anda" },
+        { status: 404 }
+      );
+    }
+
+    // Hapus testimoni
     await prisma.testimoni.delete({
-      where: { id: Number(params.id) },
+      where: { id: Number(id) },
     });
 
     return NextResponse.json({ success: true });

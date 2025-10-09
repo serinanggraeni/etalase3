@@ -4,7 +4,165 @@ import { useEffect, useState } from "react";
 import { Star, X } from "lucide-react";
 import axios from "axios";
 import Card from "../reusable/card";
+import { motion, AnimatePresence } from "framer-motion";
 
+/* ===================== 🔸 MODAL TESTIMONI 🔸 ===================== */
+function ModalTestimoni({ isOpen, onClose, onSubmit, form, setForm, rating, setRating, isEdit }) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4 animate-fadeIn">
+      <div className="relative bg-white w-full max-w-md rounded-2xl shadow-xl p-6 transform transition-all duration-300 scale-100 animate-scaleUp">
+        {/* Tombol close */}
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 text-slate-400 hover:text-slate-600 transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <h3 className="text-xl font-semibold text-center mb-5 text-gray-800">
+          {isEdit ? "Edit Testimoni" : "Tambah Testimoni"}
+        </h3>
+
+        <form onSubmit={onSubmit} className="space-y-4">
+          <div>
+            <input
+              type="text"
+              placeholder="Nama Anda"
+              value={form.name}
+              maxLength={15}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              required
+              className="w-full border border-slate-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+            />
+            <p className="text-xs text-slate-400 mt-1 text-right">
+              {form.name?.length}/15
+            </p>
+          </div>
+
+          <div>
+            <textarea
+              placeholder="Tulis pengalaman Anda..."
+              value={form.message}
+              maxLength={150}
+              onChange={(e) => setForm({ ...form, message: e.target.value })}
+              required
+              className="w-full border border-slate-300 rounded-lg px-4 py-2.5 h-28 resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+            />
+            <p className="text-xs text-slate-400 mt-1 text-right">
+              {form.message.length}/150
+            </p>
+          </div>
+
+          <div className="flex justify-center gap-2 mb-4">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Star
+                key={i}
+                onClick={() => setRating(i + 1)}
+                className={`w-8 h-8 cursor-pointer transition-transform duration-200 ${
+                  i < rating
+                    ? "text-yellow-400 fill-yellow-400 scale-110 drop-shadow-md"
+                    : "text-slate-300 hover:text-yellow-300"
+                }`}
+              />
+            ))}
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-primary hover:bg-primary/90 text-white py-2.5 rounded-lg font-semibold shadow-lg transition-transform duration-200 hover:scale-[1.02]"
+          >
+            {isEdit ? "Simpan Perubahan" : "Kirim Testimoni"}
+          </button>
+        </form>
+      </div>
+
+      <style jsx>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+
+        @keyframes scaleUp {
+          from {
+            transform: scale(0.9);
+            opacity: 0;
+          }
+          to {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .animate-scaleUp {
+          animation: scaleUp 0.3s ease-in-out;
+        }
+      `}</style>
+    </div>
+  );
+}
+
+/* ===================== 🔸 MODAL REUSABLE (ALERT & DELETE) 🔸 ===================== */
+function ConfirmModal({ mode = "alert", title, message, onConfirm, onCancel }) {
+  return (
+    <AnimatePresence>
+      <motion.div
+        className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
+        <motion.div
+          className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6 relative"
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.95, opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <button
+            onClick={onCancel || onConfirm}
+            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
+          <p className="text-gray-600 mt-2">{message}</p>
+
+          <div className="mt-6 flex justify-end space-x-3">
+            {mode === "delete" && (
+              <button
+                onClick={onCancel}
+                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 transition"
+              >
+                Batal
+              </button>
+            )}
+            <button
+              onClick={onConfirm}
+              className={`px-4 py-2 rounded-lg text-white transition ${
+                mode === "delete" ? "bg-red-600 hover:bg-red-700" : "bg-primary hover:bg-primary/90"
+              }`}
+            >
+              {mode === "delete" ? "Hapus" : "OK"}
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+/* ===================== 🔸 HALAMAN TESTIMONI 🔸 ===================== */
 export default function TestimoniPage() {
   const [testimonials, setTestimonials] = useState([]);
   const [myTestimoni, setMyTestimoni] = useState(null);
@@ -12,24 +170,21 @@ export default function TestimoniPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form, setForm] = useState({ name: "", message: "" });
   const [rating, setRating] = useState(0);
+  const [alert, setAlert] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        // Ambil daftar testimoni umum
-        const res = await axios.get("/api/testimoni", {
-          withCredentials: true,
-        });
+        const res = await axios.get("/api/testimoni", { withCredentials: true });
         setTestimonials(res.data);
-
-        // Ambil testimoni milik user
         try {
           const me = await axios.get("/api/testimoni/getMe", {
             withCredentials: true,
           });
           setMyTestimoni(me.data || null);
-        } catch (err) {
-          console.log("User belum punya testimoni", err);
+        } catch {
+          console.log("User belum punya testimoni");
         }
       } finally {
         setLoading(false);
@@ -38,17 +193,15 @@ export default function TestimoniPage() {
     fetchData();
   }, []);
 
-  // 🎨 Warna avatar
-  function stringToColor(str) {
+  // Avatar Color
+  const stringToColor = (str) => {
     let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    }
+    for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
     const hue = Math.abs(hash % 360);
     return `hsl(${hue}, 70%, 55%)`;
-  }
+  };
 
-  // 🔄 Auto-scroll horizontal
+  // Auto-scroll horizontal
   useEffect(() => {
     const container = document.getElementById("testimonial-scroll");
     if (!container) return;
@@ -67,60 +220,62 @@ export default function TestimoniPage() {
     return () => clearInterval(scroll);
   }, [testimonials]);
 
-  // 📝 Submit testimoni
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      let updatedData;
-      if (myTestimoni) {
-        const res = await axios.put(`/api/testimoni/${myTestimoni.id}`, {
-          ...form,
-          rating,
-        });
-        updatedData = res.data;
-        setTestimonials((prev) =>
-          prev.map((t) => (t.id === updatedData.id ? updatedData : t))
-        );
-        setMyTestimoni(updatedData);
-      } else {
-        const res = await axios.post("/api/testimoni", { ...form, rating });
-        updatedData = res.data.testimoni;
-        setTestimonials((prev) => [updatedData, ...prev]);
-        setMyTestimoni(updatedData);
-      }
+  // Tambah/Edit testimoni
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    let updatedData;
 
-      // 🔧 Reset form setelah submit agar tidak double input
-      setForm({ name: "", message: "" });
-      setRating(0);
-      setIsModalOpen(false);
-    } catch (err) {
-      console.error(err);
+    if (myTestimoni) {
+      const res = await axios.put(`/api/testimoni/${myTestimoni.id}`, { ...form, rating });
+      updatedData = res.data.testimoni; // ✅ ambil dari res.data.testimoni
+
+      setTestimonials((prev) =>
+        prev.map((t) => (t.id === updatedData.id ? updatedData : t))
+      );
+      setMyTestimoni(updatedData); // ✅ sekarang ID tetap ada
+
+      setAlert({ title: "Berhasil", message: "Testimoni berhasil diperbarui." });
+    } else {
+      const res = await axios.post("/api/testimoni", { ...form, rating });
+      updatedData = res.data.testimoni;
+
+      setTestimonials((prev) => [updatedData, ...prev]);
+      setMyTestimoni(updatedData);
+
+      setAlert({ title: "Berhasil", message: "Testimoni berhasil ditambahkan." });
     }
-  };
 
-  // 🗑️ Hapus testimoni
+    setForm({ name: "", message: "" });
+    setRating(0);
+    setIsModalOpen(false);
+  } catch (err) {
+    console.error(err);
+    setAlert({ title: "Gagal", message: "Terjadi kesalahan saat menyimpan testimoni." });
+  }
+};
+
+
+  // Hapus testimoni
   const handleDelete = async () => {
-    if (!confirm("Yakin ingin menghapus testimoni ini?")) return;
     try {
       await axios.delete(`/api/testimoni/${myTestimoni.id}`);
       setTestimonials((prev) => prev.filter((t) => t.id !== myTestimoni.id));
       setMyTestimoni(null);
+      setAlert({ title: "Dihapus", message: "Testimoni berhasil dihapus." });
     } catch (err) {
-      console.error(err);
+      setAlert({ title: "Gagal", message: "Tidak dapat menghapus testimoni. Coba lagi nanti." });
+    } finally {
+      setConfirmDelete(false);
     }
   };
 
-  // 🪄 Fungsi untuk membuka modal (fix double input)
+  // Buka modal tambah/edit
   const openModal = (isEditing = false) => {
     if (isEditing && myTestimoni) {
-      // kalau mode edit → isi dengan data lama
-      setForm({
-        name: myTestimoni.name,
-        message: myTestimoni.message,
-      });
+      setForm({ name: myTestimoni.name, message: myTestimoni.message });
       setRating(myTestimoni.rating);
     } else {
-      // kalau tambah baru → kosongkan form
       setForm({ name: "", message: "" });
       setRating(0);
     }
@@ -129,21 +284,12 @@ export default function TestimoniPage() {
 
   return (
     <section className="py-12 px-4 sm:px-6 lg:px-12">
-      <h2 className="text-3xl font-bold text-slate-800 text-center mb-10">
-        Testimoni Pelanggan
-      </h2>
+      <h2 className="text-3xl font-bold text-slate-800 text-center mb-10">Testimoni Pelanggan</h2>
 
-      {/* Daftar testimoni */}
-      <div
-        className="flex gap-4 overflow-x-auto scrollbar-hide"
-        id="testimonial-scroll"
-      >
+      <div className="flex gap-4 overflow-x-auto scrollbar-hide" id="testimonial-scroll">
         {loading
           ? Array.from({ length: 4 }).map((_, i) => (
-              <div
-                key={i}
-                className="bg-slate-100 md:w-72 h-48 sm:w-60 rounded-2xl animate-pulse"
-              />
+              <div key={i} className="bg-slate-100 md:w-72 h-48 sm:w-60 rounded-2xl animate-pulse" />
             ))
           : testimonials.map((t) => (
               <Card
@@ -151,9 +297,7 @@ export default function TestimoniPage() {
                 className="md:min-h-72 min-h-60 min-w-50 md:min-w-72 max-w-72 transition-all p-2 md:p-4 flex flex-col justify-between"
               >
                 <div className="flex-1 flex flex-col justify-center">
-                  <p className="text-slate-700 text-sm mb-4 text-center">
-                    “{t.message}”
-                  </p>
+                  <p className="text-slate-700 text-sm mb-4 text-center">“{t.message}”</p>
                 </div>
 
                 <div>
@@ -162,9 +306,7 @@ export default function TestimoniPage() {
                       <Star
                         key={i}
                         className={`w-5 h-5 ${
-                          i < t.rating
-                            ? "text-yellow-400 fill-yellow-400"
-                            : "text-slate-300"
+                          i < t.rating ? "text-yellow-400 fill-yellow-400" : "text-slate-300"
                         }`}
                       />
                     ))}
@@ -191,29 +333,28 @@ export default function TestimoniPage() {
             ))}
       </div>
 
-      {/* Tombol aksi */}
       {!loading && (
         <div className="text-center mt-12">
           {myTestimoni ? (
             <div className="flex justify-center gap-3">
               <button
-                onClick={() => openModal(true)} // ✨ edit mode
-                className="bg-background hover:bg-primary text-primary hover:text-white border border-primary font-semibold px-4 py-2 rounded-full shadow-md"
+                onClick={() => openModal(true)}
+                className="bg-background hover:bg-primary text-primary hover:text-white border border-primary font-semibold px-4 py-2 rounded-xl"
               >
                 Edit Testimoni
               </button>
 
               <button
-                onClick={handleDelete}
-                className="bg-primary hover:bg-background border border-primary hover:text-primary text-white font-semibold px-4 py-2 rounded-full shadow-md"
+                onClick={() => setConfirmDelete(true)}
+                className="bg-primary hover:bg-background border border-primary hover:text-primary text-white font-semibold px-4 py-2 rounded-xl"
               >
                 Hapus
               </button>
             </div>
           ) : (
             <button
-              onClick={() => openModal(false)} // ✨ tambah mode
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-full shadow-md"
+              onClick={() => openModal(false)}
+              className="bg-primary border border-primary hover:text-primary hover:bg-background text-white font-semibold px-4 py-2 rounded-xl"
             >
               Tambahkan Testimoni
             </button>
@@ -221,64 +362,37 @@ export default function TestimoniPage() {
         </div>
       )}
 
-      {/* Modal form */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-lg p-6 relative animate-fadeIn">
-            <button
-              onClick={() => setIsModalOpen(false)}
-              className="absolute top-3 right-3 text-slate-400 hover:text-slate-600"
-            >
-              <X className="w-5 h-5" />
-            </button>
+      {/* Modal Tambah/Edit Testimoni */}
+      <ModalTestimoni
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleSubmit}
+        form={form}
+        setForm={setForm}
+        rating={rating}
+        setRating={setRating}
+        isEdit={!!myTestimoni}
+      />
 
-            <h3 className="text-lg font-semibold text-center mb-5">
-              {myTestimoni ? "Edit Testimoni" : "Tambah Testimoni"}
-            </h3>
+      {/* Modal Konfirmasi Hapus */}
+      {confirmDelete && (
+        <ConfirmModal
+          mode="delete"
+          title="Hapus Testimoni"
+          message="Apakah Anda yakin ingin menghapus testimoni ini?"
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmDelete(false)}
+        />
+      )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <input
-                type="text"
-                placeholder="Nama Anda"
-                value={form.name}
-                maxLength={15}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                required
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-400"
-              />
-
-              <textarea
-                placeholder="Tulis pengalaman Anda..."
-                value={form.message}
-                maxLength={150}
-                onChange={(e) => setForm({ ...form, message: e.target.value })}
-                required
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 h-24 resize-none focus:ring-2 focus:ring-indigo-400"
-              />
-
-              <div className="flex justify-center gap-2">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star
-                    key={i}
-                    onClick={() => setRating(i + 1)}
-                    className={`w-7 h-7 cursor-pointer transition-colors ${
-                      i < rating
-                        ? "text-yellow-400 fill-yellow-400"
-                        : "text-slate-400"
-                    }`}
-                  />
-                ))}
-              </div>
-
-              <button
-                type="submit"
-                className="bg-indigo-600 hover:bg-indigo-700 text-white w-full py-2 rounded-lg font-semibold shadow-md"
-              >
-                {myTestimoni ? "Simpan Perubahan" : "Kirim Testimoni"}
-              </button>
-            </form>
-          </div>
-        </div>
+      {/* Modal Alert */}
+      {alert && (
+        <ConfirmModal
+          mode="alert"
+          title={alert.title}
+          message={alert.message}
+          onConfirm={() => setAlert(null)}
+        />
       )}
     </section>
   );

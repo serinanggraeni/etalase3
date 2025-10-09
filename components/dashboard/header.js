@@ -1,4 +1,3 @@
-"use client";
 import { Store } from "lucide-react";
 
 export default function HomeHeader() {
@@ -11,12 +10,12 @@ export default function HomeHeader() {
             Jelajahi Produk Pilihan
           </h2>
           <div className="mt-4">
-            <a
+            <button
               href="/wishlist"
-              className="inline-flex items-center gap-2 rounded-lg bg-background text-primary font-semibold px-4 py-2 shadow hover:bg-slate-50"
+              className="rounded-lg px-4 py-2.5 inline-flex bg-background text-primary font-semibold hover:bg-primary hover:text-background border border-background"
             >
               Wishlist Anda
-            </a>
+            </button>
           </div>
         </div>
 

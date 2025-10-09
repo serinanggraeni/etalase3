@@ -1,5 +1,3 @@
-"use client";
-
 import HomeHeader from "@/components/dashboard/header";
 import ProductList from "@/components/dashboard/products";
 import TestimoniPage from "@/components/dashboard/testimoni";

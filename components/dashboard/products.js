@@ -174,7 +174,7 @@ export default function ProductList() {
               return (
                 <Card
                   key={product.id}
-                  className="relative overflow-hidden transition-all duration-200 hover:-translate-y-1 cursor-pointer"
+                  className="relative overflow-hidden transition-all duration-200 hover:-translate-y-1 cursor-pointer h-auto flex flex-col"
                 >
                   {/* LOVE BUTTON */}
                   <button
@@ -204,21 +204,46 @@ export default function ProductList() {
                   </div>
 
                   {/* INFO */}
-                  <div className="p-3 space-y-1.5">
-                    <h4 className="font-semibold text-sm line-clamp-2">
-                      {product.name}
-                    </h4>
-                    <p className="text-xs text-slate-500">{product.category}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-800 text-sm">
-                        Rp {Number(product.price).toLocaleString("id-ID")}
+                  <div className="flex flex-col justify-between flex-1 p-3 space-y-2">
+                    {/* Teks */}
+                    <div>
+                      <h4 className="font-semibold text-sm line-clamp-2">
+                        {product.name}
+                      </h4>
+                      <p className="text-xs text-slate-500">
+                        {product.category}
+                      </p>
+                    </div>
+
+                    {/* Harga dan Tombol */}
+                    <div className="flex flex-col mt-auto w-full">
+                      {/* Harga di baris atas */}
+                      <span className="block mt-2 font-bold text-slate-800 text-sm">
+                        Rp{" "}
+                        {(() => {
+                          // Tentukan batas karakter
+                          const maxLength =
+                            typeof window !== "undefined" &&
+                            window.innerWidth >= 768
+                              ? 25
+                              : 15;
+
+                          const formattedPrice = Number(
+                            product.price
+                          ).toLocaleString("id-ID");
+                          return formattedPrice.length > maxLength
+                            ? formattedPrice.slice(0, maxLength) + "..."
+                            : formattedPrice;
+                        })()}
                       </span>
+
+                      {/* Tombol di baris bawah kanan */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           setModalProduct(product);
                         }}
-                        className="absolute bottom-3 right-3 z-10  text-xs text-background bg-primary py-1.5 px-3 rounded-xl hover:bg-background hover:text-primary border border-primary transition-all"
+                        className="self-end text-xs text-background bg-primary py-1.5 px-3 rounded-xl hover:bg-background hover:text-primary border border-primary transition-all"
                       >
                         Lihat Detail
                       </button>
@@ -287,7 +312,7 @@ export default function ProductList() {
               <X size={20} />
             </button>
 
-            <p className="items-center justify-center mt-4 mb-4 gap-1 text-sm text-slate-700">
+            <p className="items-center justify-center text-center mt-4 mb-4 gap-1 text-sm text-slate-700">
               Lanjutkan pembelian{" "}
               <span className="font-semibold text-slate-900">
                 {modalProduct.name}
