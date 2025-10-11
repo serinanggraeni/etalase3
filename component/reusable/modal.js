@@ -23,11 +23,11 @@ export default function ConfirmModal({
   // ====== Mode Settings ======
   const config = {
     alert: {
-      icon: <Info className="w-10 h-10 text-blue-500 mb-3" />,
+      icon: <Info className="w-10 h-10 text-primary mb-3" />,
       title: title || "Informasi",
       confirmText: confirmText || "OK",
       showCancel: false,
-      confirmColor: "bg-blue-600 hover:bg-blue-700",
+      confirmColor: "bg-primary hover:bg-primary/80",
     },
     confirm: {
       icon: <AlertTriangle className="w-10 h-10 text-yellow-500 mb-3" />,
@@ -35,7 +35,7 @@ export default function ConfirmModal({
       confirmText: confirmText || "Ya",
       cancelText: cancelText || "Batal",
       showCancel: true,
-      confirmColor: "bg-blue-600 hover:bg-blue-700",
+      confirmColor: "bg-primary hover:bg-primary/80",
     },
     delete: {
       icon: <Trash2 className="w-10 h-10 text-red-500 mb-3" />,

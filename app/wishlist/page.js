@@ -1,8 +1,5 @@
-import List from "@/components/wishlist/list";
-export default function Page (){
-    return(
-        <div>
-            <List />
-        </div>
-    )
+import Wishlist from "@/component/wishlist/list";
+
+export default function Page() {
+  return <Wishlist />
 }

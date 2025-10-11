@@ -11,19 +11,16 @@ import {
   ChevronDown,
   Menu,
   X,
+  Tag
 } from "lucide-react";
 import Cookies from "js-cookie";
 
-export default function Navbar() {
+export default function Navbar({ mode = "default" }) {
   const pathname = usePathname();
-  const showNavbarOn = ["/"];
-  const showNavbar = showNavbarOn.includes(pathname);
-
   const [user, setUser] = useState(null);
   const [scrolled, setScrolled] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarVisible, setSidebarVisible] = useState(false); // 🔹 baru
-  const [closing, setClosing] = useState(false);
+  const [sidebarVisible, setSidebarVisible] = useState(false);
 
   useEffect(() => {
     const checkUser = () => {
@@ -43,22 +40,18 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  if (!showNavbar) return null;
+  if (mode === "hidden") return null; // 🔹 mode hilang sepenuhnya
 
-  // 🔹 Fungsi baru agar animasi muncul halus
+  // 🔹 Fungsi animasi sidebar
   const openSidebar = () => {
     setSidebarOpen(true);
     setTimeout(() => setSidebarVisible(true), 10);
   };
-
   const handleCloseSidebar = () => {
     setSidebarVisible(false);
-    setTimeout(() => {
-      setSidebarOpen(false);
-    }, 300); // sama dengan durasi animasi
+    setTimeout(() => setSidebarOpen(false), 300);
   };
 
-  // 🔹 Avatar user (bulat)
   const renderUserCircle = (name, size = 10) => {
     const initial = name ? name[0].toUpperCase() : "?";
     return (
@@ -84,22 +77,47 @@ export default function Navbar() {
       roleMenu: "all",
     },
     {
+      name: "Kategori",
+      href: "/kategori",
+      icon: <Tag size={18} />,
+      roleMenu: "all",
+    },
+    {
       name: "Kelola Produk",
-      href: "/admin/kelola-products",
+      href: "/kelola-produk",
       icon: <Package size={18} />,
       roleMenu: "user",
     },
     {
       name: "Settings",
-      href: "/admin/settings",
+      href: "/settings",
       icon: <Settings size={18} />,
       roleMenu: "user",
     },
   ];
 
+  // 🔹 MODE LOGOUT — hanya tampilkan tombol keluar
+  if (mode === "logout") {
+    return (
+      <header className="fixed top-0 left-0 w-full z-50 bg-background backdrop-blur-sm border-b border-slate-200 shadow-sm">
+        <div className="flex items-center justify-start px-8 py-6">
+          <button
+            onClick={() => {
+              window.location.href = "/";
+            }}
+            className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors"
+          >
+            <LogOut size={20} />
+            <span className="font-semibold text-sm">Kembali</span>
+          </button>
+        </div>
+      </header>
+    );
+  }
+
+  // 🔹 MODE DEFAULT
   return (
     <>
-      {/* 🔹 Navbar Desktop */}
       <header
         className={`sticky top-5 z-40 mx-auto transition-all duration-500 ease-in-out py-2 px-2 ${
           scrolled
@@ -112,7 +130,6 @@ export default function Navbar() {
             scrolled ? "py-2" : "py-3"
           }`}
         >
-          {/* Logo */}
           <Link
             href="/"
             className={`font-extrabold tracking-tight transition-all duration-300 ${
@@ -146,10 +163,10 @@ export default function Navbar() {
                 ))}
             </nav>
 
-            {/* 🔹 Profil Bulat */}
+            {/* Profil Bulat */}
             {user && (
               <details className="relative group">
-                <summary className="list-none cursor-pointer inline-flex items-center gap-2 border border-slate-300 rounded-full px-3 py-1.5 text-sm font-semibold hover:bg-slate-50 transition-all">
+                <summary className="list-none cursor-pointer inline-flex items-center gap-2 border border-slate-300 rounded-lg px-3 py-1.5 text-sm font-semibold hover:bg-slate-50 transition-all">
                   {renderUserCircle(user.name, 6)}
                   <span className="ml-1">{user.name}</span>
                   <ChevronDown
@@ -157,14 +174,14 @@ export default function Navbar() {
                     className="text-slate-500 group-open:rotate-180 transition-transform"
                   />
                 </summary>
-                <div className="absolute right-0 mt-2 w-36 rounded-xl border border-slate-200 bg-background shadow-lg">
+                <div className="absolute right-0 mt-1 w-32 rounded-lg border border-slate-200 bg-background shadow-lg">
                   <button
                     onClick={() => {
                       Cookies.remove("session");
                       setUser(null);
                       window.location.href = "/";
                     }}
-                    className="w-full text-left px-4 py-2 rounded-xl text-sm hover:bg-red-50 hover:text-red-600 flex items-center gap-2"
+                    className="w-full text-left px-4 py-2 rounded-lg text-sm hover:bg-red-50 hover:text-red-600 flex items-center gap-2"
                   >
                     <LogOut size={18} /> Keluar
                   </button>
@@ -183,7 +200,7 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* 🔹 Sidebar Mobile (Animasi perbaikan) */}
+      {/* Sidebar Mobile */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
@@ -195,7 +212,6 @@ export default function Navbar() {
             }`}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
             <div>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-semibold text-primary">Menu</h2>
@@ -208,7 +224,6 @@ export default function Navbar() {
                 </button>
               </div>
 
-              {/* Menu Items */}
               <nav className="flex flex-col gap-4 text-base font-medium">
                 {menuItems
                   .filter(
@@ -221,7 +236,9 @@ export default function Navbar() {
                       key={item.name}
                       href={item.href}
                       className={`flex items-center gap-2 hover:text-primary transition-colors ${
-                        pathname === item.href ? "text-primary" : "text-slate-700"
+                        pathname === item.href
+                          ? "text-primary"
+                          : "text-slate-700"
                       }`}
                       onClick={handleCloseSidebar}
                     >
@@ -231,7 +248,6 @@ export default function Navbar() {
               </nav>
             </div>
 
-            {/* 🔹 Profil di bawah Sidebar */}
             {user && (
               <div className="flex flex-col gap-3 border-slate-300 bg-primary/10 p-4 rounded-2xl">
                 <div className="flex items-center gap-3">

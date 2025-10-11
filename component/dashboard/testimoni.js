@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Star, X } from "lucide-react";
 import axios from "axios";
 import Card from "../reusable/card";
-import { motion, AnimatePresence } from "framer-motion";
+import ConfirmModal from "../reusable/modal";
 
 /* ===================== 🔸 MODAL TESTIMONI 🔸 ===================== */
 function ModalTestimoni({ isOpen, onClose, onSubmit, form, setForm, rating, setRating, isEdit }) {
@@ -111,58 +111,6 @@ function ModalTestimoni({ isOpen, onClose, onSubmit, form, setForm, rating, setR
   );
 }
 
-/* ===================== 🔸 MODAL REUSABLE (ALERT & DELETE) 🔸 ===================== */
-function ConfirmModal({ mode = "alert", title, message, onConfirm, onCancel }) {
-  return (
-    <AnimatePresence>
-      <motion.div
-        className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-      >
-        <motion.div
-          className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6 relative"
-          initial={{ scale: 0.95, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.95, opacity: 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          <button
-            onClick={onCancel || onConfirm}
-            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-          >
-            <X className="w-5 h-5" />
-          </button>
-
-          <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
-          <p className="text-gray-600 mt-2">{message}</p>
-
-          <div className="mt-6 flex justify-end space-x-3">
-            {mode === "delete" && (
-              <button
-                onClick={onCancel}
-                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 transition"
-              >
-                Batal
-              </button>
-            )}
-            <button
-              onClick={onConfirm}
-              className={`px-4 py-2 rounded-lg text-white transition ${
-                mode === "delete" ? "bg-red-600 hover:bg-red-700" : "bg-primary hover:bg-primary/90"
-              }`}
-            >
-              {mode === "delete" ? "Hapus" : "OK"}
-            </button>
-          </div>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
-  );
-}
-
-/* ===================== 🔸 HALAMAN TESTIMONI 🔸 ===================== */
 export default function TestimoniPage() {
   const [testimonials, setTestimonials] = useState([]);
   const [myTestimoni, setMyTestimoni] = useState(null);
@@ -283,10 +231,10 @@ const handleSubmit = async (e) => {
   };
 
   return (
-    <section className="py-12 px-4 sm:px-6 lg:px-12">
+    <section className="py-12">
       <h2 className="text-3xl font-bold text-slate-800 text-center mb-10">Testimoni Pelanggan</h2>
 
-      <div className="flex gap-4 overflow-x-auto scrollbar-hide" id="testimonial-scroll">
+      <div className="flex gap-4 overflow-x-auto scrollbar-hide p-4" id="testimonial-scroll">
         {loading
           ? Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="bg-slate-100 md:w-72 h-48 sm:w-60 rounded-2xl animate-pulse" />
